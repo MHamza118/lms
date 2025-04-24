@@ -1,3 +1,11 @@
+// Global variables
+let users = [];
+let courses = [];
+let meetings = [];
+let lectures = [];
+let assignments = [];
+let notifications = [];
+
 // Check if user is logged in as an administrator
 document.addEventListener('DOMContentLoaded', function() {
     const currentUserType = sessionStorage.getItem('currentUserType');
@@ -9,44 +17,84 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize event listeners
     initializeEventListeners();
     
-    // Show default section
-    showSection('manageUsers');
-    
     // Load initial data
-    loadUsers();
-    loadCourses();
-    loadTeachers();
-    loadStudents();
-    loadLeaveRequests();
+    loadInitialData();
+    
+    // Update dashboard stats
+    updateDashboardStats();
 });
 
 // Initialize all event listeners
 function initializeEventListeners() {
-    // Add User Form
-    const addUserForm = document.getElementById('addUserForm');
-    if (addUserForm) {
-        addUserForm.addEventListener('submit', handleAddUser);
+    // User Management Form
+    const userForm = document.getElementById('userForm');
+    if (userForm) {
+        userForm.addEventListener('submit', handleAddUser);
     }
 
-    // Add Course Form
-    const addCourseForm = document.getElementById('addCourseForm');
-    if (addCourseForm) {
-        addCourseForm.addEventListener('submit', handleAddCourse);
+    // Attendance Filter Form
+    const attendanceFilterForm = document.getElementById('attendanceFilterForm');
+    if (attendanceFilterForm) {
+        attendanceFilterForm.addEventListener('submit', handleAttendanceFilter);
     }
+
+    // Lecture Upload Form
+    const lectureUploadForm = document.getElementById('lectureUploadForm');
+    if (lectureUploadForm) {
+        lectureUploadForm.addEventListener('submit', handleLectureUpload);
+    }
+
+    // Assignment Filter Form
+    const assignmentFilterForm = document.getElementById('assignmentFilterForm');
+    if (assignmentFilterForm) {
+        assignmentFilterForm.addEventListener('submit', handleAssignmentFilter);
+    }
+
+    // Notification Form
+    const notificationForm = document.getElementById('notificationForm');
+    if (notificationForm) {
+        notificationForm.addEventListener('submit', handleSendNotification);
+    }
+
+    // Course Form
+    const courseForm = document.getElementById('courseForm');
+    if (courseForm) {
+        courseForm.addEventListener('submit', handleAddCourse);
+    }
+
+    // Sidebar Navigation
+    const navItems = document.querySelectorAll('.sidebar-nav li');
+    navItems.forEach(item => {
+        if (!item.classList.contains('logout')) {
+            item.addEventListener('click', () => {
+                const section = item.getAttribute('data-section');
+                showSection(section);
+            });
+        }
+    });
 }
 
 // Function to show selected section
 function showSection(sectionId) {
     // Hide all sections
-    const sections = document.querySelectorAll('.section');
+    const sections = document.querySelectorAll('.section-container');
     sections.forEach(section => {
-        section.style.display = 'none';
+        section.classList.remove('active');
+    });
+
+    // Update active nav item
+    const navItems = document.querySelectorAll('.sidebar-nav li');
+    navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('data-section') === sectionId) {
+            item.classList.add('active');
+        }
     });
 
     // Show the selected section
     const targetSection = document.getElementById(sectionId);
     if (targetSection) {
-        targetSection.style.display = 'block';
+        targetSection.classList.add('active');
     }
 }
 
@@ -57,76 +105,113 @@ function logout() {
     window.location.href = '../index.html';
 }
 
+// Load initial data
+function loadInitialData() {
+    // Load users
+    users = JSON.parse(localStorage.getItem('users')) || [];
+    
+    // Load courses
+    courses = JSON.parse(localStorage.getItem('courses')) || [];
+    
+    // Load meetings
+    meetings = JSON.parse(localStorage.getItem('meetings')) || [];
+    
+    // Load lectures
+    lectures = JSON.parse(localStorage.getItem('lectures')) || [];
+    
+    // Load assignments
+    assignments = JSON.parse(localStorage.getItem('assignments')) || [];
+    
+    // Load notifications
+    notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+    
+    // Update all tables
+    updateAllTables();
+    
+    // Update admin name in banner
+    const adminName = sessionStorage.getItem('currentUsername');
+    if (adminName) {
+        document.getElementById('adminNameBanner').textContent = adminName;
+    }
+}
+
 // User Management Functions
 function handleAddUser(event) {
     event.preventDefault();
     
-    const userType = document.getElementById('newUserType').value;
-    const username = document.getElementById('newUsername').value;
-    const password = document.getElementById('newPassword').value;
+    const userType = document.getElementById('userType').value;
+    const userName = document.getElementById('userName').value;
+    const userEmail = document.getElementById('userEmail').value;
+    const userPassword = document.getElementById('userPassword').value;
 
-    if (!userType || !username || !password) {
+    if (!userType || !userName || !userEmail || !userPassword) {
         alert('Please fill in all fields');
         return;
     }
 
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    users[username] = {
+    const newUser = {
+        id: Date.now(),
+        name: userName,
+        email: userEmail,
         type: userType,
-        password: password
+        password: userPassword,
+        status: 'active',
+        createdAt: new Date().toISOString()
     };
 
+    users.push(newUser);
     localStorage.setItem('users', JSON.stringify(users));
-    loadUsers();
+    
+    updateUsersTable();
+    updateDashboardStats();
     event.target.reset();
 }
 
-function loadUsers() {
-    const users = JSON.parse(localStorage.getItem('users')) || {};
+function updateUsersTable() {
     const tbody = document.getElementById('usersTableBody');
-    
-    if (!tbody) return;
-    
     tbody.innerHTML = '';
     
-    Object.entries(users).forEach(([username, data]) => {
-        if (data.type !== 'Administrator') {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${username}</td>
-                <td>${data.type}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="edit-btn" onclick="editUser('${username}')">Edit</button>
-                        <button class="delete-btn" onclick="deleteUser('${username}')">Delete</button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(row);
-        }
+    users.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>${user.type}</td>
+            <td class="status-${user.status}">${user.status}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="edit-btn" onclick="editUser(${user.id})">Edit</button>
+                    <button class="delete-btn" onclick="deleteUser(${user.id})">Delete</button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(row);
     });
 }
 
-function editUser(username) {
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    const user = users[username];
-    
+function editUser(userId) {
+    const user = users.find(u => u.id === userId);
     if (!user) return;
     
-    const newPassword = prompt('Enter new password:');
-    if (newPassword) {
-        users[username].password = newPassword;
+    const newName = prompt('Enter new name:', user.name);
+    const newEmail = prompt('Enter new email:', user.email);
+    const newPassword = prompt('Enter new password:', user.password);
+    
+    if (newName && newEmail && newPassword) {
+        user.name = newName;
+        user.email = newEmail;
+        user.password = newPassword;
         localStorage.setItem('users', JSON.stringify(users));
-        loadUsers();
+        updateUsersTable();
     }
 }
 
-function deleteUser(username) {
-    if (confirm(`Are you sure you want to delete user ${username}?`)) {
-        const users = JSON.parse(localStorage.getItem('users')) || {};
-        delete users[username];
+function deleteUser(userId) {
+    if (confirm('Are you sure you want to delete this user?')) {
+        users = users.filter(u => u.id !== userId);
         localStorage.setItem('users', JSON.stringify(users));
-        loadUsers();
+        updateUsersTable();
+        updateDashboardStats();
     }
 }
 
@@ -135,57 +220,45 @@ function handleAddCourse(event) {
     event.preventDefault();
     
     const courseName = document.getElementById('courseName').value;
+    const courseCode = document.getElementById('courseCode').value;
     const courseDescription = document.getElementById('courseDescription').value;
+    const courseSyllabus = document.getElementById('courseSyllabus').value;
     const courseTeacher = document.getElementById('courseTeacher').value;
 
-    if (!courseName || !courseDescription || !courseTeacher) {
-        alert('Please fill in all fields');
-        return;
-    }
-
-    const courses = JSON.parse(localStorage.getItem('courses')) || [];
-    courses.push({
-        id: Date.now().toString(),
+    const newCourse = {
+        id: Date.now(),
+        code: courseCode,
         name: courseName,
         description: courseDescription,
-        teacher: courseTeacher
-    });
-
+        syllabus: courseSyllabus,
+        teacher: courseTeacher,
+        status: 'active',
+        createdAt: new Date().toISOString()
+    };
+    
+    courses.push(newCourse);
     localStorage.setItem('courses', JSON.stringify(courses));
-    loadCourses();
+    
+    updateCoursesTable();
+    updateDashboardStats();
     event.target.reset();
 }
 
-function loadCourses() {
-    const courses = JSON.parse(localStorage.getItem('courses')) || [];
+function updateCoursesTable() {
     const tbody = document.getElementById('coursesTableBody');
-    const courseSelect = document.getElementById('courseTeacher');
-    
-    if (!tbody) return;
-    
     tbody.innerHTML = '';
-    
-    // Update teacher select options
-    if (courseSelect) {
-        const teachers = JSON.parse(localStorage.getItem('users')) || {};
-        courseSelect.innerHTML = '<option value="">Select Teacher</option>';
-        Object.entries(teachers).forEach(([username, data]) => {
-            if (data.type === 'ClassTeacher') {
-                courseSelect.innerHTML += `<option value="${username}">${username}</option>`;
-            }
-        });
-    }
     
     courses.forEach(course => {
         const row = document.createElement('tr');
         row.innerHTML = `
+            <td>${course.code}</td>
             <td>${course.name}</td>
-            <td>${course.description}</td>
             <td>${course.teacher}</td>
+            <td class="status-${course.status}">${course.status}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="edit-btn" onclick="editCourse('${course.id}')">Edit</button>
-                    <button class="delete-btn" onclick="deleteCourse('${course.id}')">Delete</button>
+                    <button class="edit-btn" onclick="editCourse(${course.id})">Edit</button>
+                    <button class="delete-btn" onclick="deleteCourse(${course.id})">Delete</button>
                 </div>
             </td>
         `;
@@ -194,191 +267,288 @@ function loadCourses() {
 }
 
 function editCourse(courseId) {
-    const courses = JSON.parse(localStorage.getItem('courses')) || [];
     const course = courses.find(c => c.id === courseId);
-    
     if (!course) return;
     
     const newName = prompt('Enter new course name:', course.name);
-    if (newName) {
+    const newCode = prompt('Enter new course code:', course.code);
+    const newDescription = prompt('Enter new description:', course.description);
+    
+    if (newName && newCode && newDescription) {
         course.name = newName;
+        course.code = newCode;
+        course.description = newDescription;
         localStorage.setItem('courses', JSON.stringify(courses));
-        loadCourses();
+        updateCoursesTable();
     }
 }
 
 function deleteCourse(courseId) {
     if (confirm('Are you sure you want to delete this course?')) {
-        const courses = JSON.parse(localStorage.getItem('courses')) || [];
-        const filteredCourses = courses.filter(c => c.id !== courseId);
-        localStorage.setItem('courses', JSON.stringify(filteredCourses));
-        loadCourses();
+        courses = courses.filter(c => c.id !== courseId);
+        localStorage.setItem('courses', JSON.stringify(courses));
+        updateCoursesTable();
+        updateDashboardStats();
     }
 }
 
-// Teacher Management Functions
-function loadTeachers() {
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    const courses = JSON.parse(localStorage.getItem('courses')) || [];
-    const tbody = document.getElementById('teachersTableBody');
+// Update dashboard stats
+function updateDashboardStats() {
+    // Update total users
+    const totalUsers = users.length;
+    document.getElementById('totalUsers').textContent = totalUsers;
+
+    // Update active courses
+    const activeCourses = courses.filter(course => course.status === 'active').length;
+    document.getElementById('activeCourses').textContent = activeCourses;
+
+    // Update system performance
+    const performance = calculateSystemPerformance();
+    document.getElementById('performance').textContent = `${performance}%`;
+}
+
+function calculateSystemPerformance() {
+    const totalStudents = users.filter(user => user.type === 'student').length;
+    const totalTeachers = users.filter(user => user.type === 'teacher').length;
+    const activeMeetings = meetings.filter(meeting => meeting.status === 'active').length;
+    const completedAssignments = assignments.filter(assignment => assignment.status === 'completed').length;
     
-    if (!tbody) return;
+    const studentTeacherRatio = totalStudents / (totalTeachers || 1);
+    const meetingUtilization = activeMeetings / (totalTeachers || 1);
+    const assignmentCompletion = completedAssignments / (assignments.length || 1);
     
+    const performance = Math.round(
+        (studentTeacherRatio * 0.3 + meetingUtilization * 0.3 + assignmentCompletion * 0.4) * 100
+    );
+    
+    return Math.min(performance, 100);
+}
+
+// Helper Functions
+function updateAllTables() {
+    updateUsersTable();
+    updateCoursesTable();
+    updateMeetingsTable();
+    updateLecturesTable();
+    updateAssignmentsTable(assignments);
+    updateNotificationsTable();
+}
+
+// Export Functions
+function exportAttendanceReport(format) {
+    // Implement export functionality based on format (PDF/Excel)
+    console.log(`Exporting attendance report as ${format}`);
+}
+
+// Attendance Functions
+function handleAttendanceFilter(event) {
+    event.preventDefault();
+    
+    const course = document.getElementById('attendanceCourse').value;
+    const date = document.getElementById('attendanceDate').value;
+    
+    // Filter attendance data based on criteria
+    const filteredAttendance = filterAttendanceData(course, date);
+    updateAttendanceTable(filteredAttendance);
+}
+
+function filterAttendanceData(course, date) {
+    // Example implementation - replace with actual data filtering
+    return [];
+}
+
+function updateAttendanceTable(attendanceData) {
+    const tbody = document.getElementById('attendanceTableBody');
     tbody.innerHTML = '';
     
-    Object.entries(users).forEach(([username, data]) => {
-        if (data.type === 'ClassTeacher') {
-            const teacherCourses = courses.filter(c => c.teacher === username);
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${username}</td>
-                <td>${username}</td>
-                <td>${teacherCourses.map(c => c.name).join(', ') || 'No courses assigned'}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="edit-btn" onclick="editTeacher('${username}')">Edit</button>
-                        <button class="delete-btn" onclick="deleteTeacher('${username}')">Delete</button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(row);
-        }
+    attendanceData.forEach(record => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${record.student}</td>
+            <td>${record.course}</td>
+            <td>${record.date}</td>
+            <td>${record.status}</td>
+            <td>
+                <button onclick="viewAttendanceDetails(${record.id})">View</button>
+            </td>
+        `;
+        tbody.appendChild(row);
     });
 }
 
-function editTeacher(username) {
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    const user = users[username];
-    
-    if (!user) return;
-    
-    const newPassword = prompt('Enter new password:');
-    if (newPassword) {
-        users[username].password = newPassword;
-        localStorage.setItem('users', JSON.stringify(users));
-        loadTeachers();
+// Meeting Functions
+function handleMeetingActions(event) {
+    if (event.target.classList.contains('end-meeting')) {
+        const meetingId = event.target.dataset.meetingId;
+        endMeeting(meetingId);
     }
 }
 
-function deleteTeacher(username) {
-    if (confirm(`Are you sure you want to delete teacher ${username}?`)) {
-        const users = JSON.parse(localStorage.getItem('users')) || {};
-        delete users[username];
-        localStorage.setItem('users', JSON.stringify(users));
-        loadTeachers();
+function endMeeting(meetingId) {
+    const meeting = meetings.find(m => m.id === meetingId);
+    if (meeting) {
+        meeting.status = 'ended';
+        meeting.endTime = new Date().toISOString();
+        localStorage.setItem('meetings', JSON.stringify(meetings));
+        updateMeetingsTable();
     }
 }
 
-// Student Management Functions
-function loadStudents() {
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    const tbody = document.getElementById('studentsTableBody');
-    
-    if (!tbody) return;
-    
+function updateMeetingsTable() {
+    const tbody = document.getElementById('meetingsTableBody');
     tbody.innerHTML = '';
     
-    Object.entries(users).forEach(([username, data]) => {
-        if (data.type === 'Student') {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${username}</td>
-                <td>${username}</td>
-                <td>${data.enrolledCourses ? data.enrolledCourses.join(', ') : 'No courses enrolled'}</td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="edit-btn" onclick="editStudent('${username}')">Edit</button>
-                        <button class="delete-btn" onclick="deleteStudent('${username}')">Delete</button>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(row);
-        }
+    meetings.forEach(meeting => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${meeting.id}</td>
+            <td>${meeting.host}</td>
+            <td>${meeting.participants.length}</td>
+            <td>${new Date(meeting.startTime).toLocaleString()}</td>
+            <td>${meeting.status}</td>
+            <td>
+                ${meeting.status === 'active' ? 
+                    `<button class="end-meeting" data-meeting-id="${meeting.id}">End Meeting</button>` : 
+                    'Meeting Ended'}
+            </td>
+        `;
+        tbody.appendChild(row);
     });
 }
 
-function editStudent(username) {
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    const user = users[username];
+// Lecture Functions
+function handleLectureUpload(event) {
+    event.preventDefault();
     
-    if (!user) return;
+    const course = document.getElementById('lectureCourse').value;
+    const file = document.getElementById('lectureFile').files[0];
     
-    const newPassword = prompt('Enter new password:');
-    if (newPassword) {
-        users[username].password = newPassword;
-        localStorage.setItem('users', JSON.stringify(users));
-        loadStudents();
+    if (file) {
+        const newLecture = {
+            id: Date.now(),
+            title: file.name,
+            course: course,
+            file: file,
+            uploadDate: new Date().toISOString(),
+            size: formatFileSize(file.size)
+        };
+        
+        lectures.push(newLecture);
+        localStorage.setItem('lectures', JSON.stringify(lectures));
+        
+        updateLecturesTable();
+        event.target.reset();
     }
 }
 
-function deleteStudent(username) {
-    if (confirm(`Are you sure you want to delete student ${username}?`)) {
-        const users = JSON.parse(localStorage.getItem('users')) || {};
-        delete users[username];
-        localStorage.setItem('users', JSON.stringify(users));
-        loadStudents();
-    }
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Leave Request Management Functions
-function loadLeaveRequests() {
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    const tbody = document.getElementById('leaveRequestsTableBody');
-    
-    if (!tbody) return;
-    
+function updateLecturesTable() {
+    const tbody = document.getElementById('lecturesTableBody');
     tbody.innerHTML = '';
     
-    Object.entries(users).forEach(([username, data]) => {
-        if (data.type === 'Student' && data.leaveRequests) {
-            data.leaveRequests.forEach(request => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${username}</td>
-                    <td>${request.date}</td>
-                    <td>${request.reason}</td>
-                    <td class="status-${request.status.toLowerCase()}">${request.status}</td>
-                    <td>
-                        ${request.status === 'Pending' ? `
-                            <div class="action-buttons">
-                                <button class="edit-btn" onclick="approveLeaveRequest('${username}', '${request.date}')">Approve</button>
-                                <button class="delete-btn" onclick="rejectLeaveRequest('${username}', '${request.date}')">Reject</button>
-                            </div>
-                        ` : ''}
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
+    lectures.forEach(lecture => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${lecture.title}</td>
+            <td>${lecture.course}</td>
+            <td>${new Date(lecture.uploadDate).toLocaleDateString()}</td>
+            <td>${lecture.size}</td>
+            <td>
+                <button onclick="downloadLecture(${lecture.id})">Download</button>
+                <button onclick="deleteLecture(${lecture.id})">Delete</button>
+            </td>
+        `;
+        tbody.appendChild(row);
     });
 }
 
-function approveLeaveRequest(username, date) {
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    const user = users[username];
+// Assignment Functions
+function handleAssignmentFilter(event) {
+    event.preventDefault();
     
-    if (user && user.leaveRequests) {
-        const request = user.leaveRequests.find(r => r.date === date);
-        if (request) {
-            request.status = 'Approved';
-            localStorage.setItem('users', JSON.stringify(users));
-            loadLeaveRequests();
-        }
-    }
+    const course = document.getElementById('assignmentCourse').value;
+    const type = document.getElementById('assignmentType').value;
+    
+    const filteredAssignments = filterAssignments(course, type);
+    updateAssignmentsTable(filteredAssignments);
 }
 
-function rejectLeaveRequest(username, date) {
-    const users = JSON.parse(localStorage.getItem('users')) || {};
-    const user = users[username];
+function filterAssignments(course, type) {
+    return assignments.filter(assignment => {
+        if (course && assignment.course !== course) return false;
+        if (type && assignment.type !== type) return false;
+        return true;
+    });
+}
+
+function updateAssignmentsTable(filteredAssignments) {
+    const tbody = document.getElementById('assignmentsTableBody');
+    tbody.innerHTML = '';
     
-    if (user && user.leaveRequests) {
-        const request = user.leaveRequests.find(r => r.date === date);
-        if (request) {
-            request.status = 'Rejected';
-            localStorage.setItem('users', JSON.stringify(users));
-            loadLeaveRequests();
-        }
-    }
+    filteredAssignments.forEach(assignment => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${assignment.student}</td>
+            <td>${assignment.course}</td>
+            <td>${assignment.title}</td>
+            <td>${assignment.score || 'N/A'}</td>
+            <td>${assignment.status}</td>
+            <td>
+                <button onclick="viewAssignmentDetails(${assignment.id})">View</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+// Notification Functions
+function handleSendNotification(event) {
+    event.preventDefault();
+    
+    const type = document.getElementById('notificationType').value;
+    const title = document.getElementById('notificationTitle').value;
+    const message = document.getElementById('notificationMessage').value;
+    
+    const newNotification = {
+        id: Date.now(),
+        type: type,
+        title: title,
+        message: message,
+        date: new Date().toISOString(),
+        status: 'sent'
+    };
+    
+    notifications.push(newNotification);
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+    
+    updateNotificationsTable();
+    event.target.reset();
+}
+
+function updateNotificationsTable() {
+    const tbody = document.getElementById('notificationsTableBody');
+    tbody.innerHTML = '';
+    
+    notifications.forEach(notification => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${notification.title}</td>
+            <td>${notification.type}</td>
+            <td>${new Date(notification.date).toLocaleString()}</td>
+            <td>${notification.status}</td>
+            <td>
+                <button onclick="viewNotificationDetails(${notification.id})">View</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
 }
 
 // Report Generation Functions
