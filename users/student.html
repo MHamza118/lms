@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="../css/student.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-graduation-cap fa-fade"></i>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active" data-section="dashboard">
+                        <a href="#dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+                    </li>
+                    <li data-section="skills">
+                        <a href="#skills"><i class="fas fa-laptop-code"></i> <span>Skills</span></a>
+                    </li>
+                    <li data-section="schedule">
+                        <a href="#schedule"><i class="fas fa-calendar-alt"></i> <span>Schedule</span></a>
+                    </li>
+                    <li data-section="attendance">
+                        <a href="#attendance"><i class="fas fa-clipboard-check"></i> <span>Attendance</span></a>
+                    </li>
+                    <li data-section="lectures">
+                        <a href="#lectures"><i class="fas fa-book-reader"></i> <span>Lectures</span></a>
+                    </li>
+                    <li data-section="assignments">
+                        <a href="#assignments"><i class="fas fa-tasks"></i> <span>Assignments</span></a>
+                    </li>
+                    <li class="logout">
+                        <a href="#logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search">
+                </div>
+                <div class="user-profile">
+                    <div class="notifications" id="notificationBell">
+                        <i class="fas fa-bell"></i>
+                        <div class="notification-popup" id="notificationPopup"></div>
+                    </div>
+                    <div class="profile">
+                        <span class="user-name" id="studentName"></span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <div class="section-container active" id="dashboard">
+                <div class="welcome-banner">
+                    <div class="welcome-text">
+                        <h1>Welcome back, <span id="studentNameBanner"></span>!</h1>
+                        <p>Always stay updated in your student portal</p>
+                    </div>
+                </div>
+                <div class="upcoming-class" id="upcomingClass"></div>
+            </div>
+
+            <!-- Skill Development Section -->
+            <div class="section-container" id="skills">
+                <section class="skill-section">
+                    <div class="section-header">
+                        <h2>Skill Development</h2>
+                    </div>
+                    <div class="skill-categories">
+                        <div class="skill-card" onclick="showSkillLectures('freelancing')">
+                            <i class="fas fa-globe"></i>
+                            <h3>Freelancing</h3>
+                        </div>
+                        <div class="skill-card" onclick="showSkillLectures('graphicDesigning')">
+                            <i class="fas fa-palette"></i>
+                            <h3>Graphic Designing</h3>
+                        </div>
+                        <div class="skill-card" onclick="showSkillLectures('contentWriting')">
+                            <i class="fas fa-pen-fancy"></i>
+                            <h3>Content Writing</h3>
+                        </div>
+                        <div class="skill-card" onclick="showSkillLectures('webDevelopment')">
+                            <i class="fas fa-code"></i>
+                            <h3>Web Development</h3>
+                        </div>
+                    </div>
+                    <div id="skillLecturesList" class="lectures-grid"></div>
+                </section>
+            </div>
+
+            <!-- Class Schedule Section -->
+            <div class="section-container" id="schedule">
+                <section class="schedule-section">
+                    <div class="section-header">
+                        <h2>Class Schedule</h2>
+                        <div class="schedule-filters">
+                            <select id="scheduleCourse" class="course-select">
+                                <option value="">All Courses</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="schedule-container">
+                        <div class="schedule-grid" id="scheduleGrid">
+                            <!-- Meeting Links Section -->
+                            <div class="meetings-section">
+                                <h3>Upcoming Meetings</h3>
+                                <div id="meetingsList" class="meetings-list"></div>
+                            </div>
+                            
+                            <!-- Announcements Section -->
+                            <div class="announcements-section">
+                                <h3>Recent Announcements</h3>
+                                <div id="announcementsList" class="announcements-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Attendance Section -->
+            <div class="section-container" id="attendance">
+                <section class="attendance-section">
+                    <div class="section-header">
+                        <h2>Attendance Status</h2>
+                        <div class="attendance-filters">
+                            <select id="attendanceCourse" class="course-select">
+                                <option value="">All Courses</option>
+                                <option value="Web Development">Web Development</option>
+                                <option value="Graphic Designing">Graphic Designing</option>
+                                <option value="Content Writing">Content Writing</option>
+                                <option value="YouTube Automation">YouTube Automation</option>
+                                <option value="E-commerce">E-commerce</option>
+                            </select>
+                            <select id="attendanceMonth" class="month-select">
+                                <option value="">All Time</option>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="attendance-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon present">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Present</h3>
+                                <span id="presentCount">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon absent">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Absent</h3>
+                                <span id="absentCount">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon leave">
+                                <i class="fas fa-calendar-minus"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Leave</h3>
+                                <span id="leaveCount">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon percentage">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Attendance</h3>
+                                <span id="attendancePercentage">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="attendance-table-container">
+                        <table class="attendance-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Course</th>
+                                    <th>Status</th>
+                                    <th>Marked By</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Lectures Section -->
+            <div class="section-container" id="lectures">
+                <section class="lectures-section">
+                    <div class="section-header">
+                        <h2>Uploaded Lectures</h2>
+                        <div class="lectures-filters">
+                            <select id="lectureCourse" class="course-select">
+                                <option value="">All Courses</option>
+                                <option value="Web Development">Web Development</option>
+                                <option value="Graphic Designing">Graphic Designing</option>
+                                <option value="Content Writing">Content Writing</option>
+                                <option value="YouTube Automation">YouTube Automation</option>
+                                <option value="E-commerce">E-commerce</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="lectures-grid" id="lecturesGrid"></div>
+                </section>
+            </div>
+
+            <!-- Assignments Section -->
+            <div class="section-container" id="assignments">
+                <section class="assignments-section">
+                    <div class="section-header">
+                        <h2>Assignments</h2>
+                        <div class="assignments-filters">
+                            <select id="assignmentCourse" class="course-select">
+                                <option value="">All Courses</option>
+                                <option value="Web Development">Web Development</option>
+                                <option value="Graphic Designing">Graphic Designing</option>
+                                <option value="Content Writing">Content Writing</option>
+                                <option value="YouTube Automation">YouTube Automation</option>
+                                <option value="E-commerce">E-commerce</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="assignments-grid" id="assignmentsGrid"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/student.js"></script>
+</body>
+
+</html>

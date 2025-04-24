@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <link rel="stylesheet" href="../css/teacher.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src='https://meet.jit.si/external_api.js'></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fa-solid fa-person-chalkboard fa-fade"></i>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active" data-section="dashboard">
+                        <a href="#dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+                    </li>
+                    <li data-section="attendance">
+                        <a href="#attendance"><i class="fas fa-clipboard-check"></i> <span>Attendance</span></a>
+                    </li>
+                    <li data-section="assignments">
+                        <a href="#assignments"><i class="fas fa-tasks"></i> <span>Assignments</span></a>
+                    </li>
+                    <li data-section="lectures">
+                        <a href="#lectures"><i class="fas fa-book-reader"></i> <span>Lectures</span></a>
+                    </li>
+                    <li data-section="meetings">
+                        <a href="#meetings"><i class="fas fa-video"></i> <span>Meetings</span></a>
+                    </li>
+                    <li data-section="announcements">
+                        <a href="#announcements"><i class="fas fa-bullhorn"></i> <span>Announcements</span></a>
+                    </li>
+                    <li class="logout">
+                        <a href="#logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search">
+                </div>
+                <div class="user-profile">
+                    <div class="notifications" id="notificationBell">
+                        <i class="fas fa-bell"></i>
+                        <div class="notification-popup" id="notificationPopup"></div>
+                    </div>
+                    <div class="profile">
+                        <span class="user-name" id="teacherName"></span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <div class="section-container active" id="dashboard">
+                <div class="welcome-banner">
+                    <div class="welcome-text">
+                        <h1>Welcome back, <span id="teacherNameBanner"></span>!</h1>
+                        <p>Manage your classes and students effectively</p>
+                    </div>
+                </div>
+                <div class="quick-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Students</h3>
+                            <span id="totalStudents">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Active Courses</h3>
+                            <span id="activeCourses">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Pending Assignments</h3>
+                            <span id="pendingAssignments">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Today's Classes</h3>
+                            <span id="todayClasses">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Section -->
+            <div class="section-container" id="attendance">
+                <div class="section-header">
+                    <h2>Take Attendance</h2>
+                </div>
+                <div class="form-group">
+                    <label for="attendanceCourse">Select Course:</label>
+                    <select id="attendanceCourse" required>
+                        <option value="">Select Course</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="attendanceDate">Date:</label>
+                    <input type="date" id="attendanceDate" required>
+                </div>
+                <div id="attendanceList"></div>
+                <button id="saveAttendance" class="save-btn">Save Attendance</button>
+            </div>
+
+            <!-- Assignments Section -->
+            <div class="section-container" id="assignments">
+                <div class="section-header">
+                    <h2>Assignment Management</h2>
+                </div>
+                <div class="form-container">
+                    <h3>Create New Assignment</h3>
+                    <form id="assignmentForm">
+                        <div class="form-group">
+                            <label for="assignmentCourse">Select Course:</label>
+                            <select id="assignmentCourse" required>
+                                <option value="">Select Course</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="assignmentTitle">Title:</label>
+                            <input type="text" id="assignmentTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="assignmentDescription">Description:</label>
+                            <textarea id="assignmentDescription"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="assignmentDueDate">Due Date:</label>
+                            <input type="datetime-local" id="assignmentDueDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="assignmentFile">Assignment File (Optional):</label>
+                            <input type="file" id="assignmentFile">
+                        </div>
+                        <button type="submit" class="upload-btn">Create Assignment</button>
+                    </form>
+                </div>
+                <div class="assignments-list">
+                    <h3>Created Assignments</h3>
+                    <div class="filter-controls">
+                        <div class="filter-group">
+                            <label>Filter by course:</label>
+                            <select id="assignmentFilter" onchange="filterAssignments()">
+                                <option value="">All Courses</option>
+                            </select>
+                        </div>
+                        <div class="search-group">
+                            <input type="text" id="assignmentSearch" placeholder="Search assignments..." oninput="filterAssignments()">
+                        </div>
+                    </div>
+                    <div id="assignmentsList"></div>
+                </div>
+            </div>
+
+            <!-- Lectures Section -->
+            <div class="section-container" id="lectures">
+                <div class="section-header">
+                    <h2>Upload Lectures</h2>
+                </div>
+                <div class="form-container">
+                    <h3>Upload New Lecture</h3>
+                    <form id="lectureForm">
+                        <div class="form-group">
+                            <label for="lectureCourse">Select Course:</label>
+                            <select id="lectureCourse" required>
+                                <option value="">Select Course</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="lectureTitle">Title:</label>
+                            <input type="text" id="lectureTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lectureDescription">Description:</label>
+                            <textarea id="lectureDescription"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="lectureFile">Lecture File:</label>
+                            <input type="file" id="lectureFile" required>
+                        </div>
+                        <button type="submit" class="upload-btn">Upload Lecture</button>
+                    </form>
+                </div>
+                <div class="lectures-list">
+                    <h3>Uploaded Lectures</h3>
+                    <div id="lecturesList"></div>
+                </div>
+            </div>
+
+            <!-- Meetings Section -->
+            <div class="section-container" id="meetings">
+                <div class="section-header">
+                    <h2>Meeting Management</h2>
+                </div>
+                <div class="form-container">
+                    <h3>Create New Meeting</h3>
+                    <form id="meetingForm">
+                        <div class="form-group">
+                            <label for="meetingCourse">Select Course:</label>
+                            <select id="meetingCourse" required>
+                                <option value="">Select Course</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="meetingTitle">Meeting Title:</label>
+                            <input type="text" id="meetingTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="meetingDate">Date:</label>
+                            <input type="date" id="meetingDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="meetingTime">Time:</label>
+                            <input type="time" id="meetingTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="meetingDuration">Duration (minutes):</label>
+                            <input type="number" id="meetingDuration" min="15" max="240" value="60" required>
+                        </div>
+                        <button type="submit" class="create-btn">Create Meeting</button>
+                    </form>
+                </div>
+                <div class="meetings-list">
+                    <h3>Scheduled Meetings</h3>
+                    <div class="filter-controls">
+                        <div class="filter-group">
+                            <label>Filter by course:</label>
+                            <select id="meetingFilter" onchange="filterMeetings()">
+                                <option value="">All Courses</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Filter by date:</label>
+                            <select id="meetingDateFilter" onchange="filterMeetings()">
+                                <option value="">All Dates</option>
+                                <option value="today">Today</option>
+                                <option value="upcoming">Upcoming</option>
+                                <option value="past">Past</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="meetingsList"></div>
+                </div>
+                <div id="meet" class="meeting-container"></div>
+            </div>
+
+            <!-- Announcements Section -->
+            <div class="section-container" id="announcements">
+                <div class="section-header">
+                    <h2>Notifications & Announcements</h2>
+                </div>
+                <div class="form-container">
+                    <h3>Send New Announcement</h3>
+                    <form id="announcementForm">
+                        <div class="form-group">
+                            <label for="announcementCourse">Select Course:</label>
+                            <select id="announcementCourse" required>
+                                <option value="">Select Course</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="announcementTitle">Title:</label>
+                            <input type="text" id="announcementTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="announcementContent">Content:</label>
+                            <textarea id="announcementContent" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="announcementType">Type:</label>
+                            <select id="announcementType" required>
+                                <option value="general">General Announcement</option>
+                                <option value="reminder">Class Reminder</option>
+                                <option value="alert">Important Alert</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="upload-btn">Send Announcement</button>
+                    </form>
+                </div>
+                <div class="announcements-list">
+                    <h3>Recent Announcements</h3>
+                    <div class="filter-controls">
+                        <div class="filter-group">
+                            <label>Filter by course:</label>
+                            <select id="announcementFilter" onchange="filterAnnouncements()">
+                                <option value="">All Courses</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Filter by type:</label>
+                            <select id="announcementTypeFilter" onchange="filterAnnouncements()">
+                                <option value="">All Types</option>
+                                <option value="general">General</option>
+                                <option value="reminder">Reminders</option>
+                                <option value="alert">Alerts</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="announcementsList"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/teacher.js"></script>
+</body>
+</html> 
