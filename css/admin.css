@@ -17,15 +17,15 @@ body {
 }
 
 header {
-    background: #2c3e50;
+    background: green;
     color: #fff;
     padding: 20px;
     text-align: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar {
-    background: #34495e;
+    background: green;
     color: white;
     padding: 20px;
     width: 250px;
@@ -102,7 +102,9 @@ label {
     color: #2c3e50;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
@@ -139,7 +141,8 @@ table {
     margin-top: 20px;
 }
 
-th, td {
+th,
+td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #ddd;
@@ -165,7 +168,7 @@ tr:hover {
     background: #f8f9fa;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .report-card h3 {
@@ -228,12 +231,12 @@ tr:hover {
         height: auto;
         position: relative;
     }
-    
+
     .content {
         margin-left: 0;
     }
-    
+
     .reports-container {
         grid-template-columns: 1fr;
     }
-} 
+}

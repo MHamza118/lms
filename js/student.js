@@ -325,21 +325,15 @@ function getLectures(course = '') {
     // Filter lectures by course if specified
     let filteredLectures = lectures;
     if (course) {
-        // Find the course ID that matches the course name
-        const courses = JSON.parse(localStorage.getItem('courses') || '[]');
-        const courseObj = courses.find(c => c.name === course);
-        if (courseObj) {
-            filteredLectures = lectures.filter(lecture => lecture.courseId === courseObj.id);
-        }
+        filteredLectures = lectures.filter(lecture => lecture.courseName === course);
     }
     
     // Format lecture data for display
     return filteredLectures.map(lecture => {
-        const course = getCourseById(lecture.courseId);
         return {
             id: lecture.id,
             title: lecture.title,
-            course: course ? course.name : lecture.courseId,
+            course: lecture.courseName,
             instructor: lecture.teacher,
             date: lecture.uploadDate,
             fileType: lecture.fileType,
@@ -391,7 +385,7 @@ function loadAssignments(course = '') {
         assignmentsGrid.innerHTML = '<div class="empty-state"><p>No assignments available</p></div>';
         return;
     }
-    
+
     assignments.forEach(assignment => {
         const card = createAssignmentCard(assignment);
         assignmentsGrid.appendChild(card);
@@ -421,7 +415,7 @@ function createAssignmentCard(assignment) {
             <div class="grade">
                 <span>Grade: ${assignment.grade}/100</span>
                 <p class="feedback">${assignment.feedback || 'No feedback provided'}</p>
-            </div>
+                </div>
         ` : ''}
         ${assignment.status === 'Pending' ? `
             <form class="submission-form" id="form-${assignment.id}" onsubmit="submitAssignment(event, '${assignment.id}')">
@@ -477,22 +471,16 @@ function getAssignments(course = '') {
     // Filter assignments by course if specified
     let filteredAssignments = assignments;
     if (course) {
-        // Find the course ID that matches the course name
-        const courses = JSON.parse(localStorage.getItem('courses') || '[]');
-        const courseObj = courses.find(c => c.name === course);
-        if (courseObj) {
-            filteredAssignments = assignments.filter(assignment => assignment.courseId === courseObj.id);
-        }
+        filteredAssignments = assignments.filter(assignment => assignment.courseName === course);
     }
     
     // Add submission status for each assignment
     return filteredAssignments.map(assignment => {
         const submission = assignment.submissions?.find(sub => sub.studentName === studentUsername);
-        const course = getCourseById(assignment.courseId);
         return {
             id: assignment.id,
             title: assignment.title,
-            course: course ? course.name : assignment.courseId,
+            course: assignment.courseName,
             instructor: assignment.teacher,
             dueDate: assignment.dueDate,
             description: assignment.description,
