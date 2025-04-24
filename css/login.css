@@ -101,4 +101,58 @@ input:focus, select:focus {
 select option {
     background: #333;
     color: #fff;
+}
+
+/* Responsive styles for small screens */
+@media screen and (max-width: 480px) {
+    .container-login {
+        padding: 20px;
+        max-width: 90%;
+        min-height: auto;
+        margin: 20px;
+    }
+
+    h4 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    input, select {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .btn-success {
+        padding: 10px;
+        font-size: 16px;
+    }
+
+    body {
+        background-attachment: fixed;
+    }
+}
+
+/* Additional responsive styles for very small screens */
+@media screen and (max-width: 320px) {
+    .container-login {
+        padding: 15px;
+    }
+
+    h4 {
+        font-size: 20px;
+    }
+
+    input, select {
+        padding: 8px;
+        font-size: 13px;
+    }
+
+    .btn-success {
+        padding: 8px;
+        font-size: 14px;
+    }
 } 
