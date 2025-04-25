@@ -64,6 +64,10 @@ function loadStudentData() {
     loadAnnouncements();
     loadAssignments();
     loadLectures();
+
+    // Load quick stats and recent activities
+    loadQuickStats();
+    loadRecentActivities();
 }
 
 // Load courses from localStorage
@@ -148,9 +152,12 @@ function createScheduleCard(schedule) {
         </div>
         <p class="schedule-date">${formatDate(startTime)}</p>
         <p class="instructor">Instructor: ${schedule.instructor}</p>
-        <a href="${schedule.meetingLink}" class="meeting-link" target="_blank">
-            <i class="fas fa-video"></i> Join Meeting
-        </a>
+        ${schedule.meetingLink ?
+            `<a href="${schedule.meetingLink}" class="meeting-link" target="_blank">
+                <i class="fas fa-video"></i> Join Meeting
+            </a>` :
+            '<p class="no-link">Meeting link not available</p>'
+        }
     `;
     return card;
 }
@@ -321,13 +328,13 @@ function loadLectures(course = '') {
 
 function getLectures(course = '') {
     const lectures = JSON.parse(localStorage.getItem('lectures') || '[]');
-    
+
     // Filter lectures by course if specified
     let filteredLectures = lectures;
     if (course) {
         filteredLectures = lectures.filter(lecture => lecture.courseName === course);
     }
-    
+
     // Format lecture data for display
     return filteredLectures.map(lecture => {
         return {
@@ -366,7 +373,7 @@ function createLectureCard(lecture) {
 function downloadLecture(lectureId) {
     const lectures = JSON.parse(localStorage.getItem('lectures') || '[]');
     const lecture = lectures.find(l => l.id === lectureId);
-    
+
     if (lecture) {
         // In a real application, this would download the actual file
         // For now, we'll just show a message
@@ -378,9 +385,9 @@ function downloadLecture(lectureId) {
 function loadAssignments(course = '') {
     const assignmentsGrid = document.getElementById('assignmentsGrid');
     assignmentsGrid.innerHTML = '';
-    
+
     const assignments = getAssignments(course);
-    
+
     if (assignments.length === 0) {
         assignmentsGrid.innerHTML = '<div class="empty-state"><p>No assignments available</p></div>';
         return;
@@ -467,13 +474,13 @@ function submitAssignment(event, assignmentId) {
 function getAssignments(course = '') {
     const assignments = JSON.parse(localStorage.getItem('assignments') || '[]');
     const studentUsername = sessionStorage.getItem('currentUsername');
-    
+
     // Filter assignments by course if specified
     let filteredAssignments = assignments;
     if (course) {
         filteredAssignments = assignments.filter(assignment => assignment.courseName === course);
     }
-    
+
     // Add submission status for each assignment
     return filteredAssignments.map(assignment => {
         const submission = assignment.submissions?.find(sub => sub.studentName === studentUsername);
@@ -624,7 +631,12 @@ function loadMeetings(selectedCourse = '') {
                 <p><strong>Course:</strong> ${course ? course.name : 'Unknown Course'}</p>
                 <p><strong>Time:</strong> ${meeting.time}</p>
                 <p><strong>Duration:</strong> ${meeting.duration} minutes</p>
-                <a href="${meeting.link}" target="_blank" class="meeting-link">Join Meeting</a>
+                ${meeting.link ?
+                `<a href="${meeting.link}" target="_blank" class="meeting-link">
+                        <i class="fas fa-video"></i> Join Meeting
+                    </a>` :
+                '<p class="no-link">Meeting link not available</p>'
+            }
             </div>
         `;
         meetingsList.appendChild(meetingElement);
@@ -698,4 +710,101 @@ function filterByCourse(data, course) {
 function logout() {
     localStorage.removeItem('currentUser');
     window.location.href = '../index.html';
+}
+
+// Load quick stats
+function loadQuickStats() {
+    const courses = JSON.parse(localStorage.getItem('courses') || '[]');
+    const assignments = getAssignments();
+    const attendanceRecords = getAttendanceRecords();
+    
+    // Active Courses Count
+    document.getElementById('activeCoursesCount').textContent = courses.length;
+    
+    // Pending Assignments Count
+    const pendingAssignments = assignments.filter(assignment => 
+        !assignment.submission || assignment.submission.status === 'Pending'
+    ).length;
+    document.getElementById('pendingAssignmentsCount').textContent = pendingAssignments;
+    
+    // Overall Progress (based on completed assignments)
+    const totalAssignments = assignments.length;
+    const completedAssignments = assignments.filter(assignment => 
+        assignment.submission && assignment.submission.status === 'Graded'
+    ).length;
+    const progress = totalAssignments > 0 ? Math.round((completedAssignments / totalAssignments) * 100) : 0;
+    document.getElementById('overallProgress').textContent = `${progress}%`;
+    
+    // Upcoming Classes Count
+    const upcomingClasses = getUpcomingClasses();
+    document.getElementById('upcomingClassesCount').textContent = upcomingClasses.length;
+}
+
+// Load recent activities
+function loadRecentActivities() {
+    const activitiesList = document.getElementById('activitiesList');
+    activitiesList.innerHTML = '';
+
+    // Get recent activities from various sources
+    const activities = [
+        ...getRecentAssignments(),
+        ...getRecentLectures(),
+        ...getRecentAttendance()
+    ];
+
+    // Sort activities by date (most recent first)
+    activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Display only the 5 most recent activities
+    activities.slice(0, 5).forEach(activity => {
+        const activityItem = document.createElement('div');
+        activityItem.className = 'activity-item';
+        
+        activityItem.innerHTML = `
+            <div class="activity-icon">
+                <i class="${activity.icon}"></i>
+            </div>
+            <div class="activity-details">
+                <h4>${activity.title}</h4>
+                <p>${activity.description}</p>
+            </div>
+            <div class="activity-time">${formatTime(new Date(activity.date))}</div>
+        `;
+        
+        activitiesList.appendChild(activityItem);
+    });
+}
+
+// Get recent assignments
+function getRecentAssignments() {
+    const assignments = getAssignments();
+    return assignments.map(assignment => ({
+        date: assignment.dueDate,
+        title: `New Assignment: ${assignment.title}`,
+        description: `Due: ${formatDate(new Date(assignment.dueDate))}`,
+        icon: 'fas fa-tasks'
+    }));
+}
+
+// Get recent lectures
+function getRecentLectures() {
+    const lectures = getLectures();
+    return lectures.map(lecture => ({
+        date: lecture.uploadDate,
+        title: `New Lecture: ${lecture.title}`,
+        description: `Course: ${lecture.course}`,
+        icon: 'fas fa-book'
+    }));
+}
+
+// Get recent attendance records
+function getRecentAttendance() {
+    const records = getAttendanceRecords();
+    return records.map(record => ({
+        date: record.date,
+        title: `Attendance Marked: ${record.status}`,
+        description: `Course: ${record.course}`,
+        icon: record.status === 'Present' ? 'fas fa-check-circle' : 
+              record.status === 'Absent' ? 'fas fa-times-circle' : 'fas fa-calendar-minus'
+    }));
 }

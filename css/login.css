@@ -18,7 +18,7 @@ body::before {
     right: 0;
     bottom: 0;
     background: inherit;
-    filter: blur(8px);
+    filter: blur(2px);
     z-index: -1;
 }
 
@@ -30,9 +30,15 @@ body::before {
     width: 100%;
 }
 
+.gradient-text {
+    background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 .container-login {
-    background: rgba(0, 128, 0, 0.267);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.301);
+    backdrop-filter: blur(4px);
     padding: 40px;
     border-radius: 15px;
     box-shadow: 0 8px 32px orange;
@@ -58,7 +64,8 @@ h4 {
     text-align: left;
 }
 
-input, select {
+input,
+select {
     width: calc(100% - 24px);
     padding: 12px;
     border: 2px solid rgba(255, 255, 255, 0.3);
@@ -75,7 +82,8 @@ input::placeholder {
     color: rgba(255, 255, 255, 0.7);
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
     border-color: #FFA500;
     outline: none;
     background: rgba(255, 255, 255, 0.2);
@@ -121,7 +129,8 @@ select option {
         margin-bottom: 15px;
     }
 
-    input, select {
+    input,
+    select {
         padding: 10px;
         font-size: 14px;
     }
@@ -146,7 +155,8 @@ select option {
         font-size: 20px;
     }
 
-    input, select {
+    input,
+    select {
         padding: 8px;
         font-size: 13px;
     }
@@ -155,4 +165,4 @@ select option {
         padding: 8px;
         font-size: 14px;
     }
-} 
+}
