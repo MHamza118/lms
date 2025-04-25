@@ -30,12 +30,6 @@ body::before {
     width: 100%;
 }
 
-.gradient-text {
-    background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
 .container-login {
     background: rgba(255, 255, 255, 0.301);
     backdrop-filter: blur(4px);
