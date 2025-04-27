@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load initial data
     loadStudentData();
+
+    // Load announcements explicitly
+    loadAnnouncements();
 });
 
 // Initialize all event listeners
@@ -45,6 +48,18 @@ function initializeEventListeners() {
         const selectedCourse = e.target.value;
         loadMeetings(selectedCourse);
         loadAnnouncements(selectedCourse);
+    });
+
+    // Course filter for lectures
+    document.getElementById('lectureCourse').addEventListener('change', function (e) {
+        const selectedCourse = e.target.value;
+        loadLectures(selectedCourse);
+    });
+
+    // Course filter for assignments
+    document.getElementById('assignmentCourse').addEventListener('change', function (e) {
+        const selectedCourse = e.target.value;
+        loadAssignments(selectedCourse);
     });
 }
 
@@ -85,19 +100,30 @@ function loadCourses() {
     }
 
     const courses = JSON.parse(localStorage.getItem('courses'));
-    const courseSelect = document.getElementById('scheduleCourse');
+    const courseSelects = [
+        'scheduleCourse',
+        'lectureCourse',
+        'assignmentCourse',
+        'attendanceCourse'
+    ];
 
-    // Clear existing options except the first one
-    while (courseSelect.options.length > 1) {
-        courseSelect.remove(1);
-    }
+    // Update all course select dropdowns
+    courseSelects.forEach(selectId => {
+        const courseSelect = document.getElementById(selectId);
+        if (courseSelect) {
+            // Clear existing options except the first one
+            while (courseSelect.options.length > 1) {
+                courseSelect.remove(1);
+            }
 
-    // Add courses from localStorage
-    courses.forEach(course => {
-        const option = document.createElement('option');
-        option.value = course.name;
-        option.textContent = course.name;
-        courseSelect.appendChild(option);
+            // Add courses from localStorage
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.name;
+                option.textContent = course.name;
+                courseSelect.appendChild(option);
+            });
+        }
     });
 }
 
@@ -339,13 +365,14 @@ function getLectures(course = '') {
     return filteredLectures.map(lecture => {
         return {
             id: lecture.id,
-            title: lecture.title,
-            course: lecture.courseName,
-            instructor: lecture.teacher,
-            date: lecture.uploadDate,
-            fileType: lecture.fileType,
-            fileSize: lecture.fileSize,
-            description: lecture.description
+            title: lecture.title || 'Untitled Lecture',
+            course: lecture.courseName || 'General',
+            instructor: lecture.teacher || 'Unknown Instructor',
+            date: lecture.uploadDate || new Date().toISOString(),
+            fileType: lecture.fileType || 'Unknown Type',
+            fileSize: lecture.fileSize || '0 KB',
+            description: lecture.description || '',
+            fileUrl: lecture.fileUrl || ''
         };
     });
 }
@@ -371,13 +398,50 @@ function createLectureCard(lecture) {
 }
 
 function downloadLecture(lectureId) {
+    console.log('Downloading lecture:', lectureId);
     const lectures = JSON.parse(localStorage.getItem('lectures') || '[]');
-    const lecture = lectures.find(l => l.id === lectureId);
+    const lecture = lectures.find(l => String(l.id) === String(lectureId));
 
-    if (lecture) {
-        // In a real application, this would download the actual file
-        // For now, we'll just show a message
-        alert(`Downloading lecture: ${lecture.title}`);
+    if (!lecture) {
+        console.error('Lecture not found:', lectureId);
+        alert('Lecture not found. Please refresh the page and try again.');
+        return;
+    }
+
+    if (!lecture.file) {
+        console.error('No file attached to lecture:', lectureId);
+        alert('No file attached to this lecture');
+        return;
+    }
+
+    try {
+        // Create a download link
+        const link = document.createElement('a');
+
+        // Check if it's a large file with a URL
+        if (lecture.isLargeFile && lecture.fileUrl) {
+            console.log('Using temporary URL for large file');
+            link.href = lecture.fileUrl;
+        } else {
+            // Get the file data from localStorage
+            const fileData = localStorage.getItem(`lecture_${lectureId}`);
+            if (!fileData) {
+                console.error('File data not found in localStorage for lecture:', lectureId);
+                alert('File not found. It may have been removed or the browser was restarted.');
+                return;
+            }
+            link.href = fileData;
+        }
+
+        link.download = lecture.file; // Use the original filename
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showNotification('Downloading lecture: ' + lecture.title);
+    } catch (error) {
+        console.error('Error downloading lecture:', error);
+        alert('Error downloading lecture. Please try again.');
     }
 }
 
@@ -420,9 +484,22 @@ function createAssignmentCard(assignment) {
         <div class="status ${assignment.status.toLowerCase()}">${assignment.status}</div>
         ${assignment.status === 'Graded' ? `
             <div class="grade">
-                <span>Grade: ${assignment.grade}/100</span>
-                <p class="feedback">${assignment.feedback || 'No feedback provided'}</p>
+                <span class="grade-value">Grade: ${assignment.grade}/100</span>
+                ${assignment.gradedAt ? `<span class="graded-date">Graded on: ${formatDate(new Date(assignment.gradedAt))}</span>` : ''}
+                <div class="feedback-container">
+                    <h4>Feedback:</h4>
+                    <p class="feedback">${assignment.feedback || 'No feedback provided'}</p>
                 </div>
+            </div>
+        ` : ''}
+        ${assignment.hasFile ? `
+            <div class="assignment-file">
+                <i class="fas fa-paperclip"></i>
+                <span>${assignment.fileName} (${assignment.fileSize})</span>
+                <button class="download-btn" onclick="downloadAssignment('${assignment.id}')">
+                    <i class="fas fa-download"></i> Download
+                </button>
+            </div>
         ` : ''}
         ${assignment.status === 'Pending' ? `
             <form class="submission-form" id="form-${assignment.id}" onsubmit="submitAssignment(event, '${assignment.id}')">
@@ -443,6 +520,8 @@ function createAssignmentCard(assignment) {
 
 function submitAssignment(event, assignmentId) {
     event.preventDefault();
+    console.log('Submitting assignment:', assignmentId);
+
     const form = document.getElementById(`form-${assignmentId}`);
     const fileInput = document.getElementById(`file-${assignmentId}`);
     const file = fileInput.files[0];
@@ -452,25 +531,201 @@ function submitAssignment(event, assignmentId) {
         return;
     }
 
-    // Here you would typically upload the file to your server
-    // For now, we'll just simulate the upload
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('assignmentId', assignmentId);
-
-    // Simulate upload progress
+    // Show upload progress
     const submitBtn = form.querySelector('.submit-btn');
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
     submitBtn.disabled = true;
 
-    setTimeout(() => {
-        // Simulate successful upload
-        alert('Assignment submitted successfully!');
-        loadAssignments(); // Reload assignments to show updated status
-    }, 2000);
+    // Get the assignments from localStorage
+    const assignments = JSON.parse(localStorage.getItem('assignments') || '[]');
+    console.log('All assignments:', assignments);
+
+    const assignmentIndex = assignments.findIndex(a => String(a.id) === String(assignmentId));
+    console.log('Assignment index:', assignmentIndex, 'for ID:', assignmentId);
+
+    if (assignmentIndex === -1) {
+        console.error('Assignment not found with ID:', assignmentId);
+        alert('Assignment not found');
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Assignment';
+        submitBtn.disabled = false;
+        return;
+    }
+
+    const assignment = assignments[assignmentIndex];
+    console.log('Found assignment:', assignment);
+
+    // Create a unique submission ID
+    const submissionId = Date.now().toString();
+
+    // For smaller files, store in localStorage first
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+        try {
+            // Check file size - warn if over 5MB (localStorage limit)
+            const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+            let fileUrl = '';
+            let isLargeFile = false;
+            let fileData = e.target.result;
+
+            if (file.size > MAX_SIZE) {
+                // For large files, create a temporary URL
+                fileUrl = URL.createObjectURL(file);
+                isLargeFile = true;
+                console.log('Large file detected, using URL.createObjectURL');
+            } else {
+                // Save the file data to localStorage
+                try {
+                    localStorage.setItem(`submission_${submissionId}`, fileData);
+                    console.log('File saved to localStorage');
+                } catch (storageError) {
+                    console.error('Error saving to localStorage:', storageError);
+                    // If localStorage fails, use URL.createObjectURL as fallback
+                    fileUrl = URL.createObjectURL(file);
+                    isLargeFile = true;
+                    console.log('Falling back to URL.createObjectURL due to localStorage error');
+                }
+            }
+
+            // Create the submission object
+            const studentUsername = sessionStorage.getItem('currentUsername');
+            const submission = {
+                id: submissionId,
+                studentName: studentUsername,
+                submissionDate: new Date().toISOString(),
+                file: {
+                    name: file.name,
+                    type: file.type,
+                    size: formatFileSize(file.size)
+                },
+                fileUrl: fileUrl,
+                isLargeFile: isLargeFile
+            };
+
+            console.log('Created submission object:', submission);
+
+            // Initialize submissions array if it doesn't exist
+            if (!assignment.submissions) {
+                assignment.submissions = [];
+            }
+
+            // Add the submission to the assignment
+            assignment.submissions.push(submission);
+
+            // Update the assignment in the assignments array
+            assignments[assignmentIndex] = assignment;
+
+            // Save the updated assignments back to localStorage
+            localStorage.setItem('assignments', JSON.stringify(assignments));
+            console.log('Updated assignments in localStorage');
+
+            // Set a flag to indicate a new submission was made (for teacher dashboard)
+            localStorage.setItem('new_submission_timestamp', Date.now().toString());
+            localStorage.setItem('last_submitted_assignment', assignmentId);
+
+            console.log('Assignment submitted successfully:', submission);
+            console.log('Updated assignments:', assignments);
+
+            // Show success message
+            if (isLargeFile) {
+                alert('Assignment submitted successfully! Note: This file is too large to store in browser. The download link will only work in this session.');
+            } else {
+                alert('Assignment submitted successfully!');
+            }
+
+            // Update the card to show "Submitted" status
+            const card = form.closest('.assignment-card');
+            if (card) {
+                const statusDiv = card.querySelector('.status');
+                if (statusDiv) {
+                    statusDiv.className = 'status submitted';
+                    statusDiv.textContent = 'Submitted';
+                }
+
+                // Remove the submission form
+                form.remove();
+            }
+
+            // Reload assignments to refresh the UI
+            loadAssignments();
+        } catch (error) {
+            console.error('Error in reader.onload:', error);
+            alert('Error saving submission. Please try again.');
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Assignment';
+            submitBtn.disabled = false;
+        }
+    };
+
+    reader.onerror = function (error) {
+        console.error('Error reading file:', error);
+        alert('Error reading file. Please try again.');
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Assignment';
+        submitBtn.disabled = false;
+    };
+
+    // Start reading the file
+    try {
+        reader.readAsDataURL(file);
+    } catch (error) {
+        console.error('Error starting file read:', error);
+        alert('Error reading file. Please try again.');
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Assignment';
+        submitBtn.disabled = false;
+    }
 }
 
-// Mock data functions
+function downloadAssignment(assignmentId) {
+    console.log('Downloading assignment:', assignmentId);
+    const assignments = JSON.parse(localStorage.getItem('assignments') || '[]');
+    const assignment = assignments.find(a => String(a.id) === String(assignmentId));
+
+    if (!assignment) {
+        console.error('Assignment not found:', assignmentId);
+        alert('Assignment not found. Please refresh the page and try again.');
+        return;
+    }
+
+    if (!assignment.file) {
+        console.error('No file attached to assignment:', assignmentId);
+        alert('No file attached to this assignment');
+        return;
+    }
+
+    try {
+        // Check if it's a large file with a URL
+        if (assignment.isLargeFile && assignment.fileUrl) {
+            console.log('Using temporary URL for large file');
+            const link = document.createElement('a');
+            link.href = assignment.fileUrl;
+            link.download = assignment.file.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            // Get the file data from localStorage
+            const fileData = localStorage.getItem(`assignment_${assignmentId}`);
+            if (!fileData) {
+                console.error('File data not found in localStorage for assignment:', assignmentId);
+                alert('File not found. It may have been removed or the browser was restarted.');
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.href = fileData;
+            link.download = assignment.file.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        showNotification('Downloading assignment: ' + assignment.title);
+    } catch (error) {
+        console.error('Error downloading assignment:', error);
+        alert('Error downloading assignment. Please try again.');
+    }
+}
+
+// Get assignments from localStorage
 function getAssignments(course = '') {
     const assignments = JSON.parse(localStorage.getItem('assignments') || '[]');
     const studentUsername = sessionStorage.getItem('currentUsername');
@@ -484,6 +739,17 @@ function getAssignments(course = '') {
     // Add submission status for each assignment
     return filteredAssignments.map(assignment => {
         const submission = assignment.submissions?.find(sub => sub.studentName === studentUsername);
+
+        // Determine status based on submission and grade
+        let status = 'Pending';
+        if (submission) {
+            if (submission.status === 'Graded' || submission.grade) {
+                status = 'Graded';
+            } else {
+                status = 'Submitted';
+            }
+        }
+
         return {
             id: assignment.id,
             title: assignment.title,
@@ -491,15 +757,27 @@ function getAssignments(course = '') {
             instructor: assignment.teacher,
             dueDate: assignment.dueDate,
             description: assignment.description,
-            status: submission ? 'Submitted' : 'Pending',
+            status: status,
             grade: submission?.grade,
-            feedback: submission?.feedback
+            feedback: submission?.feedback,
+            submissionDate: submission?.submissionDate,
+            gradedAt: submission?.gradedAt,
+            hasFile: !!assignment.file,
+            fileName: assignment.file?.name,
+            fileSize: assignment.file?.size
         };
     });
 }
 
 // Helper Functions
 function showNotification(message) {
+    // Check if notificationPopup exists
+    if (!notificationPopup) {
+        console.error('Notification popup element not found');
+        alert(message); // Fallback to alert if popup not found
+        return;
+    }
+
     const notification = document.createElement('div');
     notification.className = 'notification';
     notification.textContent = message;
@@ -509,14 +787,16 @@ function showNotification(message) {
 
     setTimeout(() => {
         notification.remove();
-        if (notificationPopup.children.length === 0) {
+        if (notificationPopup && notificationPopup.children.length === 0) {
             notificationPopup.classList.remove('show');
         }
     }, 5000);
 }
 
 function toggleNotifications() {
-    notificationPopup.classList.toggle('show');
+    if (notificationPopup) {
+        notificationPopup.classList.toggle('show');
+    }
 }
 
 function formatDate(date) {
@@ -536,8 +816,8 @@ function formatTime(date) {
 }
 
 // Mock data functions (replace with actual API calls)
-function getSkillLectures(skillType) {
-    // Return mock data
+function getSkillLectures(/* skillType */) {
+    // Return mock data based on skill type (parameter commented to avoid unused variable warning)
     return [];
 }
 
@@ -601,36 +881,32 @@ function loadScheduleData() {
 // Load and display meetings
 function loadMeetings(selectedCourse = '') {
     const meetings = JSON.parse(localStorage.getItem('meetings') || '[]');
-    const meetingsList = document.getElementById('meetingsList');
-    meetingsList.innerHTML = '';
+    const scheduleGrid = document.getElementById('scheduleGrid');
+    scheduleGrid.innerHTML = '';
 
     // Filter meetings by course if selected
     let filteredMeetings = meetings;
     if (selectedCourse) {
-        filteredMeetings = meetings.filter(meeting => {
-            const course = getCourseById(meeting.courseId);
-            return course && course.name === selectedCourse;
-        });
+        filteredMeetings = meetings.filter(meeting => meeting.courseName === selectedCourse);
     }
 
     if (filteredMeetings.length === 0) {
-        meetingsList.innerHTML = '<p class="no-data">No upcoming meetings</p>';
+        scheduleGrid.innerHTML = '<p class="no-data">No upcoming meetings</p>';
         return;
     }
 
     filteredMeetings.forEach(meeting => {
-        const course = getCourseById(meeting.courseId);
         const meetingElement = document.createElement('div');
         meetingElement.className = 'meeting-card';
         meetingElement.innerHTML = `
             <div class="meeting-header">
-                <h4>${meeting.title}</h4>
-                <span class="meeting-date">${formatDate(meeting.date)}</span>
+                <h4>${meeting.title || 'Untitled Meeting'}</h4>
+                <span class="meeting-date">${formatDate(meeting.date || new Date())}</span>
             </div>
             <div class="meeting-details">
-                <p><strong>Course:</strong> ${course ? course.name : 'Unknown Course'}</p>
-                <p><strong>Time:</strong> ${meeting.time}</p>
-                <p><strong>Duration:</strong> ${meeting.duration} minutes</p>
+                <p><strong>Course:</strong> ${meeting.courseName || 'General'}</p>
+                <p><strong>Time:</strong> ${meeting.time || 'TBA'}</p>
+                <p><strong>Duration:</strong> ${meeting.duration || '60'} minutes</p>
                 ${meeting.link ?
                 `<a href="${meeting.link}" target="_blank" class="meeting-link">
                         <i class="fas fa-video"></i> Join Meeting
@@ -639,7 +915,7 @@ function loadMeetings(selectedCourse = '') {
             }
             </div>
         `;
-        meetingsList.appendChild(meetingElement);
+        scheduleGrid.appendChild(meetingElement);
     });
 }
 
@@ -647,34 +923,36 @@ function loadMeetings(selectedCourse = '') {
 function loadAnnouncements(selectedCourse = '') {
     const announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
     const announcementsList = document.getElementById('announcementsList');
+
+    if (!announcementsList) {
+        console.error('Announcements list element not found');
+        return;
+    }
+
     announcementsList.innerHTML = '';
 
     // Filter announcements by course if selected
     let filteredAnnouncements = announcements;
     if (selectedCourse) {
-        filteredAnnouncements = announcements.filter(announcement => {
-            const course = getCourseById(announcement.courseId);
-            return course && course.name === selectedCourse;
-        });
+        filteredAnnouncements = announcements.filter(announcement => announcement.course === selectedCourse);
     }
 
     if (filteredAnnouncements.length === 0) {
-        announcementsList.innerHTML = '<p class="no-data">No announcements</p>';
+        announcementsList.innerHTML = '<p class="no-data">No announcements available</p>';
         return;
     }
 
     filteredAnnouncements.forEach(announcement => {
-        const course = getCourseById(announcement.courseId);
         const announcementElement = document.createElement('div');
-        announcementElement.className = 'announcement-card';
+        announcementElement.className = `announcement-card ${announcement.type || 'general'}`;
         announcementElement.innerHTML = `
             <div class="announcement-header">
-                <h4>${announcement.title}</h4>
-                <span class="announcement-date">${formatDate(announcement.date)}</span>
+                <h4>${announcement.title || 'Untitled Announcement'}</h4>
+                <span class="announcement-date">${formatDate(announcement.timestamp || new Date())}</span>
             </div>
             <div class="announcement-details">
-                <p><strong>Course:</strong> ${course ? course.name : 'Unknown Course'}</p>
-                <p>${announcement.content}</p>
+                <p><strong>Course:</strong> ${announcement.courseName || 'General'}</p>
+                <p>${announcement.content || announcement.message || ''}</p>
             </div>
         `;
         announcementsList.appendChild(announcementElement);
@@ -691,6 +969,15 @@ function getCourseById(courseId) {
 function formatDate(dateString) {
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString(undefined, options);
+}
+
+// Helper function to format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
 // Filter schedule data by course
@@ -717,24 +1004,35 @@ function loadQuickStats() {
     const courses = JSON.parse(localStorage.getItem('courses') || '[]');
     const assignments = getAssignments();
     const attendanceRecords = getAttendanceRecords();
-    
+
     // Active Courses Count
     document.getElementById('activeCoursesCount').textContent = courses.length;
-    
+
     // Pending Assignments Count
-    const pendingAssignments = assignments.filter(assignment => 
-        !assignment.submission || assignment.submission.status === 'Pending'
+    const pendingAssignments = assignments.filter(assignment =>
+        assignment.status === 'Pending'
     ).length;
     document.getElementById('pendingAssignmentsCount').textContent = pendingAssignments;
-    
+
     // Overall Progress (based on completed assignments)
     const totalAssignments = assignments.length;
-    const completedAssignments = assignments.filter(assignment => 
-        assignment.submission && assignment.submission.status === 'Graded'
+    const completedAssignments = assignments.filter(assignment =>
+        assignment.status === 'Graded'
     ).length;
     const progress = totalAssignments > 0 ? Math.round((completedAssignments / totalAssignments) * 100) : 0;
     document.getElementById('overallProgress').textContent = `${progress}%`;
-    
+
+    // Attendance Stats
+    const totalAttendance = attendanceRecords.length;
+    const presentCount = attendanceRecords.filter(record => record.status === 'Present').length;
+    const attendancePercentage = totalAttendance > 0 ? Math.round((presentCount / totalAttendance) * 100) : 0;
+
+    // Update attendance percentage if element exists
+    const attendanceElement = document.getElementById('attendancePercentage');
+    if (attendanceElement) {
+        attendanceElement.textContent = `${attendancePercentage}%`;
+    }
+
     // Upcoming Classes Count
     const upcomingClasses = getUpcomingClasses();
     document.getElementById('upcomingClassesCount').textContent = upcomingClasses.length;
@@ -759,7 +1057,7 @@ function loadRecentActivities() {
     activities.slice(0, 5).forEach(activity => {
         const activityItem = document.createElement('div');
         activityItem.className = 'activity-item';
-        
+
         activityItem.innerHTML = `
             <div class="activity-icon">
                 <i class="${activity.icon}"></i>
@@ -770,7 +1068,7 @@ function loadRecentActivities() {
             </div>
             <div class="activity-time">${formatTime(new Date(activity.date))}</div>
         `;
-        
+
         activitiesList.appendChild(activityItem);
     });
 }
@@ -786,15 +1084,27 @@ function getRecentAssignments() {
     }));
 }
 
+// Get lectures from localStorage
+function getLectures() {
+    const lectures = JSON.parse(localStorage.getItem('lectures') || '[]');
+    return lectures;
+}
+
 // Get recent lectures
 function getRecentLectures() {
     const lectures = getLectures();
     return lectures.map(lecture => ({
         date: lecture.uploadDate,
         title: `New Lecture: ${lecture.title}`,
-        description: `Course: ${lecture.course}`,
+        description: `Course: ${lecture.courseName}`,
         icon: 'fas fa-book'
     }));
+}
+
+// Get attendance records from localStorage
+function getAttendanceRecords() {
+    // Return empty array for now
+    return [];
 }
 
 // Get recent attendance records
@@ -804,7 +1114,7 @@ function getRecentAttendance() {
         date: record.date,
         title: `Attendance Marked: ${record.status}`,
         description: `Course: ${record.course}`,
-        icon: record.status === 'Present' ? 'fas fa-check-circle' : 
-              record.status === 'Absent' ? 'fas fa-times-circle' : 'fas fa-calendar-minus'
+        icon: record.status === 'Present' ? 'fas fa-check-circle' :
+            record.status === 'Absent' ? 'fas fa-times-circle' : 'fas fa-calendar-minus'
     }));
 }

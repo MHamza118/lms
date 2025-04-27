@@ -534,6 +534,40 @@ body {
     margin-bottom: 10px;
 }
 
+.announcements-container {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.announcements-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.announcement-card {
+    background: #f8f9fa;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.announcement-card.general {
+    border-left: 4px solid #2196f3;
+}
+
+.announcement-card.reminder {
+    border-left: 4px solid #ff9800;
+}
+
+.announcement-card.alert {
+    border-left: 4px solid #f44336;
+}
+
 /* Skill Development Section */
 .skill-section {
     margin-bottom: 30px;
@@ -902,18 +936,43 @@ body {
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 15px;
+    border-left: 4px solid #007bff;
 }
 
-.grade span {
+.grade .grade-value {
+    font-size: 18px;
     font-weight: 600;
-    color: green;
+    color: #007bff;
     display: block;
     margin-bottom: 5px;
 }
 
-.grade .feedback {
+.grade .graded-date {
+    font-size: 12px;
     color: #666;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.grade .feedback-container {
+    margin-top: 10px;
+    background-color: white;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+.grade .feedback-container h4 {
     font-size: 14px;
+    color: #333;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.grade .feedback {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.4;
 }
 
 .submission-form {

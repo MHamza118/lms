@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard</title>
     <link rel="stylesheet" href="../css/student.css">
+    <link rel="stylesheet" href="../css/student-attendance.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -112,6 +113,15 @@
                 </div>
 
                 <!-- Recent Activities -->
+                <div class="announcements-container">
+                    <div class="section-header">
+                        <h2>Teacher Announcements</h2>
+                    </div>
+                    <div id="announcementsList" class="announcements-list">
+                        <!-- Announcements will be populated dynamically -->
+                    </div>
+                </div>
+
                 <div class="recent-activities">
                     <div class="section-header">
                         <h2>Recent Activities</h2>
@@ -179,83 +189,10 @@
                 <section class="attendance-section">
                     <div class="section-header">
                         <h2>Attendance Status</h2>
-                        <div class="attendance-filters">
-                            <select id="attendanceCourse" class="course-select">
-                                <option value="">All Courses</option>
-                                <option value="Web Development">Web Development</option>
-                                <option value="Graphic Designing">Graphic Designing</option>
-                                <option value="Content Writing">Content Writing</option>
-                                <option value="YouTube Automation">YouTube Automation</option>
-                                <option value="E-commerce">E-commerce</option>
-                            </select>
-                            <select id="attendanceMonth" class="month-select">
-                                <option value="">All Time</option>
-                                <option value="1">January</option>
-                                <option value="2">February</option>
-                                <option value="3">March</option>
-                                <option value="4">April</option>
-                                <option value="5">May</option>
-                                <option value="6">June</option>
-                                <option value="7">July</option>
-                                <option value="8">August</option>
-                                <option value="9">September</option>
-                                <option value="10">October</option>
-                                <option value="11">November</option>
-                                <option value="12">December</option>
-                            </select>
-                        </div>
                     </div>
-                    <div class="attendance-stats">
-                        <div class="stat-card">
-                            <div class="stat-icon present">
-                                <i class="fas fa-check-circle"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Present</h3>
-                                <span id="presentCount">0</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon absent">
-                                <i class="fas fa-times-circle"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Absent</h3>
-                                <span id="absentCount">0</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon leave">
-                                <i class="fas fa-calendar-minus"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Leave</h3>
-                                <span id="leaveCount">0</span>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon percentage">
-                                <i class="fas fa-percentage"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3>Attendance</h3>
-                                <span id="attendancePercentage">0%</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="attendance-table-container">
-                        <table class="attendance-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Course</th>
-                                    <th>Status</th>
-                                    <th>Marked By</th>
-                                    <th>Time</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendanceTableBody"></tbody>
-                        </table>
+                    <!-- Attendance records will be dynamically populated here -->
+                    <div id="attendanceRecords" class="attendance-records-container">
+                        <!-- Content will be populated by student-attendance.js -->
                     </div>
                 </section>
             </div>
@@ -303,6 +240,7 @@
     </div>
 
     <script src="../js/student.js"></script>
+    <script src="../js/student-attendance.js"></script>
 </body>
 
 </html>

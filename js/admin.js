@@ -102,7 +102,40 @@ function showSection(sectionId) {
 function logout() {
     sessionStorage.removeItem('currentUserType');
     sessionStorage.removeItem('currentUsername');
+    sessionStorage.removeItem('currentUserId');
     window.location.href = '../index.html';
+}
+
+// Function to test user login
+function testUserLogin(user) {
+    if (confirm(`Do you want to test login as ${user.name} (${user.type})?`)) {
+        // Store the admin's session info to restore later
+        const adminType = sessionStorage.getItem('currentUserType');
+        const adminName = sessionStorage.getItem('currentUsername');
+
+        // Create a new browser tab for the login test
+        const loginWindow = window.open('../index.html', '_blank');
+
+        // Wait for the new window to load
+        loginWindow.onload = function () {
+            // Set up a message listener to know when to restore admin session
+            window.addEventListener('message', function (event) {
+                if (event.data === 'login-test-complete') {
+                    // Restore admin session
+                    sessionStorage.setItem('currentUserType', adminType);
+                    sessionStorage.setItem('currentUsername', adminName);
+                }
+            });
+
+            // Pass the user credentials to the login page
+            loginWindow.postMessage({
+                action: 'test-login',
+                email: user.email,
+                password: user.password,
+                userType: user.type
+            }, '*');
+        };
+    }
 }
 
 // Load initial data
@@ -185,6 +218,27 @@ function handleAddUser(event) {
     // Update local users array
     users = registeredUsers;
 
+    // If the new user is a student, sync with students array for attendance
+    if (loginUserType === 'Student') {
+        // Create a student entry in the format expected by the attendance system
+        const studentEntry = {
+            id: newUser.id.toString(),
+            name: newUser.name,
+            email: newUser.email,
+            status: newUser.status
+        };
+
+        // Get current students array
+        const students = JSON.parse(localStorage.getItem('students') || '[]');
+
+        // Add the new student if not already present
+        if (!students.some(student => student.id === studentEntry.id)) {
+            students.push(studentEntry);
+            localStorage.setItem('students', JSON.stringify(students));
+            console.log('Added new student to attendance system:', studentEntry.name);
+        }
+    }
+
     updateUsersTable();
     updateDashboardStats();
     event.target.reset();
@@ -239,6 +293,9 @@ function updateUsersTable() {
                     <button class="send-credentials-btn" onclick="sendCredentialsByEmail(${JSON.stringify(user).replace(/"/g, '&quot;')})">
                         <i class="fas fa-envelope"></i>
                     </button>
+                    <button class="test-login-btn" onclick="testUserLogin(${JSON.stringify(user).replace(/"/g, '&quot;')})">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </button>
                 </div>
             </td>
         `;
@@ -247,28 +304,104 @@ function updateUsersTable() {
 }
 
 function editUser(userId) {
-    const user = users.find(u => u.id === userId);
-    if (!user) return;
+    // Get the latest registered users from localStorage
+    const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    const userIndex = registeredUsers.findIndex(u => u.id === userId);
+
+    if (userIndex === -1) {
+        alert('User not found');
+        return;
+    }
+
+    const user = registeredUsers[userIndex];
 
     const newName = prompt('Enter new name:', user.name);
     const newEmail = prompt('Enter new email:', user.email);
     const newPassword = prompt('Enter new password:', user.password);
 
     if (newName && newEmail && newPassword) {
+        // Update user properties
         user.name = newName;
         user.email = newEmail;
         user.password = newPassword;
-        localStorage.setItem('users', JSON.stringify(users));
+
+        // Update the user in the registeredUsers array
+        registeredUsers[userIndex] = user;
+
+        // Save back to localStorage
+        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+
+        // Update local users array
+        users = registeredUsers;
+
+        // Update the UI
         updateUsersTable();
+
+        // If the user is a student, update the students array for attendance
+        if (user.type === 'Student') {
+            // Get current students array
+            const students = JSON.parse(localStorage.getItem('students') || '[]');
+
+            // Find and update the student
+            const studentIndex = students.findIndex(s => s.id === user.id.toString());
+            if (studentIndex !== -1) {
+                students[studentIndex] = {
+                    id: user.id.toString(),
+                    name: user.name,
+                    email: user.email,
+                    status: user.status
+                };
+
+                // Save updated students array
+                localStorage.setItem('students', JSON.stringify(students));
+                console.log('Updated student in attendance system:', user.name);
+            }
+        }
+
+        alert('User updated successfully');
     }
 }
 
 function deleteUser(userId) {
     if (confirm('Are you sure you want to delete this user?')) {
-        users = users.filter(u => u.id !== userId);
-        localStorage.setItem('users', JSON.stringify(users));
+        // Get the latest registered users from localStorage
+        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+
+        // Find the user to get their type before deletion
+        const userToDelete = registeredUsers.find(u => u.id === userId);
+
+        if (!userToDelete) {
+            alert('User not found');
+            return;
+        }
+
+        // Remove the user from registeredUsers
+        const updatedUsers = registeredUsers.filter(u => u.id !== userId);
+
+        // Save back to localStorage
+        localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
+
+        // Update local users array
+        users = updatedUsers;
+
+        // If the user is a student, also remove from students array for attendance
+        if (userToDelete.type === 'Student') {
+            // Get current students array
+            const students = JSON.parse(localStorage.getItem('students') || '[]');
+
+            // Remove the student
+            const updatedStudents = students.filter(s => s.id !== userId.toString());
+
+            // Save updated students array
+            localStorage.setItem('students', JSON.stringify(updatedStudents));
+            console.log('Removed student from attendance system:', userToDelete.name);
+        }
+
+        // Update the UI
         updateUsersTable();
         updateDashboardStats();
+
+        alert('User deleted successfully');
     }
 }
 

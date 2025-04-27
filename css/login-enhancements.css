@@ -1,0 +1,54 @@
+/* Login enhancements CSS */
+
+/* Test login button */
+.test-login-btn {
+    background-color: #007bff;
+    color: #fff;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.test-login-btn:hover {
+    background-color: #0069d9;
+}
+
+/* Login form enhancements */
+.form-group.focused label {
+    color: #4CAF50;
+    font-weight: 500;
+}
+
+.form-group.focused input,
+.form-group.focused select {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+/* Login error messages */
+.login-error {
+    color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    display: none;
+}
+
+.login-error.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -46,6 +46,11 @@ body::before {
     justify-content: center;
 }
 
+.shadow-text {
+    color: white;
+    text-shadow: 2px 2px 4px black;
+}
+
 h4 {
     color: #4CAF50;
     font-size: 28px;
