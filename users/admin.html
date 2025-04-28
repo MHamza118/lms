@@ -180,25 +180,22 @@
                         <button type="submit">Generate Report</button>
                     </form>
                 </div>
+                <div class="export-options">
+                    <button data-format="pdf"><i class="fas fa-file-pdf"></i> Export as PDF</button>
+                    <button data-format="excel"><i class="fas fa-file-excel"></i> Export as Excel</button>
+                </div>
                 <div class="table-container">
                     <table id="attendanceTable">
                         <thead>
                             <tr>
-                                <th>Student</th>
                                 <th>Course</th>
                                 <th>Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th>Teacher</th>
+                                <th>Attendance Stats</th>
                             </tr>
                         </thead>
                         <tbody id="attendanceTableBody"></tbody>
                     </table>
-                </div>
-                <div class="export-options">
-                    <button onclick="exportAttendanceReport('pdf')"><i class="fas fa-file-pdf"></i> Export as
-                        PDF</button>
-                    <button onclick="exportAttendanceReport('excel')"><i class="fas fa-file-excel"></i> Export as
-                        Excel</button>
                 </div>
             </div>
 
@@ -270,31 +267,6 @@
                 <div class="section-header">
                     <h2>Assignment Tracking</h2>
                 </div>
-                <div class="form-container">
-                    <form id="assignmentFilterForm">
-                        <div class="form-group">
-                            <label for="assignmentCourse">Course</label>
-                            <select id="assignmentCourse" required>
-                                <option value="">Select Course</option>
-                                <option value="web-dev">Web Development</option>
-                                <option value="graphic-design">Graphic Designing</option>
-                                <option value="content-writing">Content Writing</option>
-                                <option value="youtube">YouTube Automation</option>
-                                <option value="ecommerce">E-commerce</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="assignmentType">Assignment Type</label>
-                            <select id="assignmentType" required>
-                                <option value="">Select Type</option>
-                                <option value="quiz">Quiz</option>
-                                <option value="homework">Homework</option>
-                                <option value="project">Project</option>
-                            </select>
-                        </div>
-                        <button type="submit">Filter</button>
-                    </form>
-                </div>
                 <div class="table-container">
                     <table id="assignmentsTable">
                         <thead>
@@ -336,7 +308,8 @@
                             <label for="notificationMessage">Message</label>
                             <textarea id="notificationMessage" required></textarea>
                         </div>
-                        <button type="submit">Send Notification</button>
+                        <button type="submit" onclick="event.preventDefault(); sendNotification(); return false;">Send
+                            Notification</button>
                     </form>
                 </div>
                 <div class="table-container">
@@ -346,7 +319,6 @@
                                 <th>Title</th>
                                 <th>Type</th>
                                 <th>Date</th>
-                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -406,6 +378,11 @@
     </div>
 
     <script src="../js/admin.js"></script>
+    <script src="../js/admin-attendance.js"></script>
+    <script src="../js/admin-meetings.js"></script>
+    <script src="../js/admin-lectures.js"></script>
+    <script src="../js/admin-assignments.js"></script>
+    <script src="../js/admin-notifications.js"></script>
 </body>
 
 </html>

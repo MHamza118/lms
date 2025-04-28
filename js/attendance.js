@@ -1,16 +1,16 @@
-// Attendance Management Functions
+// Teacher Attendance Management Functions
 
 // Function to sync students from registeredUsers to students array
 function syncStudentsForAttendance() {
     // Get all registered users
     const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    
+
     // Filter only student users
     const studentUsers = registeredUsers.filter(user => user.type === 'Student');
-    
+
     // Get current students array or initialize empty array
     const currentStudents = JSON.parse(localStorage.getItem('students') || '[]');
-    
+
     // Map student users to the format expected by the attendance system
     const mappedStudents = studentUsers.map(user => ({
         id: user.id.toString(),
@@ -18,17 +18,17 @@ function syncStudentsForAttendance() {
         email: user.email,
         status: user.status
     }));
-    
+
     // Merge existing students with new ones (avoid duplicates by id)
     const existingIds = currentStudents.map(student => student.id);
     const newStudents = mappedStudents.filter(student => !existingIds.includes(student.id));
-    
+
     // Combine existing and new students
     const updatedStudents = [...currentStudents, ...newStudents];
-    
+
     // Save updated students array
     localStorage.setItem('students', JSON.stringify(updatedStudents));
-    
+
     console.log(`Synced ${newStudents.length} new students for attendance`);
     return updatedStudents;
 }
@@ -37,7 +37,7 @@ function syncStudentsForAttendance() {
 function loadAttendanceList() {
     // First sync students to ensure we have the latest data
     const students = syncStudentsForAttendance();
-    
+
     const courseId = document.getElementById('attendanceCourse').value;
     const date = document.getElementById('attendanceDate').value;
 
@@ -170,17 +170,17 @@ function getStudentAttendanceRecords(studentId) {
 // Function to calculate attendance percentage for a student
 function calculateAttendancePercentage(studentId, courseId = null) {
     const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
-    
+
     // Filter by course if specified
-    const courseAttendances = courseId 
+    const courseAttendances = courseId
         ? attendances.filter(a => a.courseId === courseId)
         : attendances;
-    
+
     if (courseAttendances.length === 0) return 0;
-    
+
     // Count how many times the student was present
     const presentCount = courseAttendances.filter(a => a.present.includes(studentId)).length;
-    
+
     // Calculate percentage
     return Math.round((presentCount / courseAttendances.length) * 100);
 }

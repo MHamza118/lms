@@ -1,8 +1,3 @@
-/**
- * Student Attendance Viewer
- * This file contains functions for students to view their attendance records
- */
-
 // Get the current student's attendance records
 function getStudentAttendanceRecords() {
     // Get the current student's ID from session storage
@@ -14,7 +9,7 @@ function getStudentAttendanceRecords() {
 
     // Get all registered users to find the student's ID
     const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-    const currentStudent = registeredUsers.find(user => 
+    const currentStudent = registeredUsers.find(user =>
         user.name === studentName && user.type === 'Student'
     );
 
@@ -24,22 +19,22 @@ function getStudentAttendanceRecords() {
     }
 
     const studentId = currentStudent.id.toString();
-    
+
     // Get all attendance records
     const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
-    
+
     // Get all courses for display purposes
     const courses = JSON.parse(localStorage.getItem('courses') || '[]');
-    
+
     // Filter attendance records where this student is marked present or absent
     const studentAttendances = attendances.map(attendance => {
         // Find the course name for this attendance record
         const course = courses.find(c => c.id.toString() === attendance.courseId || c.name === attendance.courseId);
         const courseName = course ? course.name : attendance.courseId;
-        
+
         // Check if student was present
         const isPresent = attendance.present.includes(studentId);
-        
+
         return {
             date: attendance.date,
             courseName: courseName,
@@ -47,17 +42,17 @@ function getStudentAttendanceRecords() {
             teacher: attendance.teacher
         };
     });
-    
+
     // Sort by date (newest first)
     studentAttendances.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
+
     return studentAttendances;
 }
 
 // Calculate attendance statistics
 function calculateAttendanceStats() {
     const attendanceRecords = getStudentAttendanceRecords();
-    
+
     if (attendanceRecords.length === 0) {
         return {
             totalClasses: 0,
@@ -67,11 +62,11 @@ function calculateAttendanceStats() {
             absentPercentage: 0
         };
     }
-    
+
     const present = attendanceRecords.filter(record => record.status === 'Present').length;
     const total = attendanceRecords.length;
     const absent = total - present;
-    
+
     return {
         totalClasses: total,
         present: present,
@@ -85,17 +80,17 @@ function calculateAttendanceStats() {
 function displayAttendanceRecords() {
     const attendanceRecords = getStudentAttendanceRecords();
     const attendanceStats = calculateAttendanceStats();
-    
+
     // Get the attendance container
     const attendanceContainer = document.getElementById('attendanceRecords');
     if (!attendanceContainer) {
         console.error('Attendance container not found');
         return;
     }
-    
+
     // Clear previous content
     attendanceContainer.innerHTML = '';
-    
+
     // Add attendance statistics
     const statsDiv = document.createElement('div');
     statsDiv.className = 'attendance-stats';
@@ -118,7 +113,7 @@ function displayAttendanceRecords() {
         </div>
     `;
     attendanceContainer.appendChild(statsDiv);
-    
+
     // Add attendance visualization
     const visualDiv = document.createElement('div');
     visualDiv.className = 'attendance-visual';
@@ -135,7 +130,7 @@ function displayAttendanceRecords() {
         </div>
     `;
     attendanceContainer.appendChild(visualDiv);
-    
+
     // Add filter controls
     const filterDiv = document.createElement('div');
     filterDiv.className = 'filter-controls';
@@ -152,18 +147,18 @@ function displayAttendanceRecords() {
         </div>
     `;
     attendanceContainer.appendChild(filterDiv);
-    
+
     // Create attendance table
     const tableDiv = document.createElement('div');
     tableDiv.className = 'attendance-table-container';
-    
+
     if (attendanceRecords.length === 0) {
         tableDiv.innerHTML = '<div class="empty-state">No attendance records found</div>';
     } else {
         const table = document.createElement('table');
         table.className = 'attendance-table';
         table.id = 'attendanceTable';
-        
+
         // Add table header
         const thead = document.createElement('thead');
         thead.innerHTML = `
@@ -175,22 +170,22 @@ function displayAttendanceRecords() {
             </tr>
         `;
         table.appendChild(thead);
-        
+
         // Add table body
         const tbody = document.createElement('tbody');
         attendanceRecords.forEach(record => {
             const row = document.createElement('tr');
             row.className = record.status.toLowerCase();
-            
+
             // Format date
             const date = new Date(record.date);
-            const formattedDate = date.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+            const formattedDate = date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
-            
+
             row.innerHTML = `
                 <td>${formattedDate}</td>
                 <td>${record.courseName}</td>
@@ -199,11 +194,11 @@ function displayAttendanceRecords() {
             `;
             tbody.appendChild(row);
         });
-        
+
         table.appendChild(tbody);
         tableDiv.appendChild(table);
     }
-    
+
     attendanceContainer.appendChild(tableDiv);
 }
 
@@ -212,27 +207,27 @@ function filterAttendanceTable() {
     const searchInput = document.getElementById('attendanceSearch');
     const statusFilter = document.getElementById('attendanceStatusFilter');
     const table = document.getElementById('attendanceTable');
-    
+
     if (!searchInput || !statusFilter || !table) return;
-    
+
     const searchValue = searchInput.value.toLowerCase();
     const statusValue = statusFilter.value;
-    
+
     const rows = table.querySelectorAll('tbody tr');
-    
+
     rows.forEach(row => {
         const course = row.cells[1].textContent.toLowerCase();
         const status = row.cells[2].textContent;
-        
+
         const matchesSearch = course.includes(searchValue);
         const matchesStatus = statusValue === 'all' || status === statusValue;
-        
+
         row.style.display = matchesSearch && matchesStatus ? '' : 'none';
     });
 }
 
 // Initialize attendance view when the page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Check if we're on the student dashboard page
     if (document.getElementById('attendanceRecords')) {
         displayAttendanceRecords();
