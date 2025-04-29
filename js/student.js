@@ -223,6 +223,9 @@ function sendEmailNotification(schedule) {
 
 // Skill Development Functions
 function showSkillLectures(skillType) {
+    // Show the skill modal with details
+    showSkillModal(skillType);
+
     // Clear previous lectures
     skillLecturesList.innerHTML = '';
 
@@ -234,6 +237,158 @@ function showSkillLectures(skillType) {
         const lectureCard = createLectureCard(lecture);
         skillLecturesList.appendChild(lectureCard);
     });
+}
+
+// Skill Modal Functions
+function showSkillModal(skillType) {
+    const skillData = getSkillData(skillType);
+
+    // Update modal content
+    document.getElementById('skillModalTitle').innerHTML = `<i class="${skillData.icon}"></i> ${skillData.title}`;
+    document.getElementById('skillModalDescription').textContent = skillData.description;
+
+    // Update features
+    const featuresContainer = document.getElementById('skillFeatures');
+    featuresContainer.innerHTML = '';
+
+    skillData.features.forEach(feature => {
+        const featureElement = document.createElement('div');
+        featureElement.className = 'skill-feature';
+        featureElement.innerHTML = `
+            <i class="${feature.icon}"></i>
+            <h4>${feature.title}</h4>
+            <p>${feature.description}</p>
+        `;
+        featuresContainer.appendChild(featureElement);
+    });
+
+    // Show the modal
+    document.getElementById('skillModalOverlay').classList.add('active');
+}
+
+function closeSkillModal() {
+    document.getElementById('skillModalOverlay').classList.remove('active');
+}
+
+function getSkillData(skillType) {
+    // Mock data for each skill type
+    const skillsData = {
+        freelancing: {
+            title: 'Freelancing',
+            icon: 'fas fa-globe',
+            description: 'Learn how to build a successful freelancing career with Freelancing Society. Master the art of finding clients, managing projects, and growing your income as a freelancer.',
+            features: [
+                {
+                    icon: 'fas fa-search',
+                    title: 'Client Acquisition',
+                    description: 'Learn strategies to find and attract high-quality clients'
+                },
+                {
+                    icon: 'fas fa-dollar-sign',
+                    title: 'Pricing Strategies',
+                    description: 'Master the art of pricing your services for maximum profit'
+                },
+                {
+                    icon: 'fas fa-tasks',
+                    title: 'Project Management',
+                    description: 'Efficiently manage multiple projects and deadlines'
+                },
+                {
+                    icon: 'fas fa-chart-line',
+                    title: 'Growth Strategies',
+                    description: 'Scale your freelance business to new heights'
+                }
+            ]
+        },
+        graphicDesigning: {
+            title: 'Graphic Designing',
+            icon: 'fas fa-palette',
+            description: 'Develop your graphic design skills with Freelancing Society. Learn industry-standard tools and techniques to create stunning visual content for various platforms.',
+            features: [
+                {
+                    icon: 'fas fa-paint-brush',
+                    title: 'Design Fundamentals',
+                    description: 'Master color theory, typography, and composition'
+                },
+                {
+                    icon: 'fas fa-laptop',
+                    title: 'Software Mastery',
+                    description: 'Become proficient in Adobe Photoshop, Illustrator, and more'
+                },
+                {
+                    icon: 'fas fa-mobile-alt',
+                    title: 'UI/UX Design',
+                    description: 'Create user-friendly interfaces for web and mobile'
+                },
+                {
+                    icon: 'fas fa-briefcase',
+                    title: 'Portfolio Building',
+                    description: 'Develop a compelling portfolio to attract clients'
+                }
+            ]
+        },
+        contentWriting: {
+            title: 'Content Writing',
+            icon: 'fas fa-pen-fancy',
+            description: 'Enhance your content writing skills with Freelancing Society. Learn how to create engaging, SEO-friendly content that resonates with audiences and drives results.',
+            features: [
+                {
+                    icon: 'fas fa-pencil-alt',
+                    title: 'Writing Techniques',
+                    description: 'Master various writing styles and formats'
+                },
+                {
+                    icon: 'fas fa-search',
+                    title: 'SEO Writing',
+                    description: 'Create content optimized for search engines'
+                },
+                {
+                    icon: 'fas fa-bullhorn',
+                    title: 'Copywriting',
+                    description: 'Write persuasive copy that converts readers into customers'
+                },
+                {
+                    icon: 'fas fa-edit',
+                    title: 'Editing Skills',
+                    description: 'Polish your content to professional standards'
+                }
+            ]
+        },
+        webDevelopment: {
+            title: 'Web Development',
+            icon: 'fas fa-code',
+            description: 'Build your web development expertise with Freelancing Society. Learn front-end and back-end technologies to create responsive, dynamic websites and web applications.',
+            features: [
+                {
+                    icon: 'fas fa-html5',
+                    title: 'Front-End Development',
+                    description: 'Master HTML, CSS, and JavaScript'
+                },
+                {
+                    icon: 'fas fa-database',
+                    title: 'Back-End Development',
+                    description: 'Learn server-side programming and databases'
+                },
+                {
+                    icon: 'fas fa-mobile-alt',
+                    title: 'Responsive Design',
+                    description: 'Create websites that work on all devices'
+                },
+                {
+                    icon: 'fas fa-cogs',
+                    title: 'Web Frameworks',
+                    description: 'Build with React, Angular, Node.js, and more'
+                }
+            ]
+        }
+    };
+
+    return skillsData[skillType] || {
+        title: 'Skill Information',
+        icon: 'fas fa-info-circle',
+        description: 'Information about this skill is not available at the moment.',
+        features: []
+    };
 }
 
 // Class Schedule Functions
@@ -816,9 +971,100 @@ function formatTime(date) {
 }
 
 // Mock data functions (replace with actual API calls)
-function getSkillLectures(/* skillType */) {
-    // Return mock data based on skill type (parameter commented to avoid unused variable warning)
-    return [];
+function getSkillLectures(skillType) {
+    // Return mock data based on skill type
+    const mockLectures = {
+        freelancing: [
+            {
+                id: 'fl-1',
+                title: 'Getting Started with Freelancing',
+                course: 'Freelancing',
+                instructor: 'Saf Khan Khattak',
+                date: new Date(2024, 1, 15),
+                fileType: 'PDF',
+                fileSize: '2.5 MB',
+                description: 'Introduction to freelancing platforms and creating your profile.'
+            },
+            {
+                id: 'fl-2',
+                title: 'Building Your Freelance Portfolio',
+                course: 'Freelancing',
+                instructor: 'Saf Khan Khattak',
+                date: new Date(2024, 1, 22),
+                fileType: 'PDF',
+                fileSize: '3.1 MB',
+                description: 'Learn how to showcase your work effectively to attract clients.'
+            }
+        ],
+        graphicDesigning: [
+            {
+                id: 'gd-1',
+                title: 'Fundamentals of Graphic Design',
+                course: 'Graphic Designing',
+                instructor: 'Farah Shammen',
+                date: new Date(2024, 1, 10),
+                fileType: 'PDF',
+                fileSize: '4.2 MB',
+                description: 'Introduction to design principles and color theory.'
+            },
+            {
+                id: 'gd-2',
+                title: 'Adobe Photoshop Essentials',
+                course: 'Graphic Designing',
+                instructor: 'Farah Shammen',
+                date: new Date(2024, 1, 17),
+                fileType: 'Video',
+                fileSize: '125 MB',
+                description: 'Getting started with Adobe Photoshop tools and techniques.'
+            }
+        ],
+        contentWriting: [
+            {
+                id: 'cw-1',
+                title: 'Content Writing Basics',
+                course: 'Content Writing',
+                instructor: 'Shehla Javed',
+                date: new Date(2024, 1, 12),
+                fileType: 'PDF',
+                fileSize: '1.8 MB',
+                description: 'Introduction to different types of content writing.'
+            },
+            {
+                id: 'cw-2',
+                title: 'SEO Writing Techniques',
+                course: 'Content Writing',
+                instructor: 'Shehla Javed',
+                date: new Date(2024, 1, 19),
+                fileType: 'PDF',
+                fileSize: '2.3 MB',
+                description: 'Learn how to optimize your content for search engines.'
+            }
+        ],
+        webDevelopment: [
+            {
+                id: 'wd-1',
+                title: 'HTML & CSS Fundamentals',
+                course: 'Web Development',
+                instructor: 'Arif Jan',
+                date: new Date(2024, 1, 14),
+                fileType: 'PDF',
+                fileSize: '3.5 MB',
+                description: 'Introduction to HTML structure and CSS styling.'
+            },
+            {
+                id: 'wd-2',
+                title: 'JavaScript Basics',
+                course: 'Web Development',
+                instructor: 'Arif Jan',
+                date: new Date(2024, 1, 21),
+                fileType: 'Video',
+                fileSize: '150 MB',
+                description: 'Getting started with JavaScript programming for the web.'
+            }
+        ]
+    };
+
+    return mockLectures[skillType] || [];
 }
 
 function getUpcomingClasses() {

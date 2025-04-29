@@ -608,6 +608,162 @@ body {
     margin: 0;
 }
 
+.skill-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.skill-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.skill-modal {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.skill-modal-overlay.active .skill-modal {
+    transform: translateY(0);
+}
+
+.skill-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.skill-modal-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+}
+
+.skill-modal-header h2 i {
+    margin-right: 15px;
+    font-size: 28px;
+}
+
+.skill-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s ease;
+}
+
+.skill-modal-close:hover {
+    color: #ff5252;
+}
+
+.skill-modal-body {
+    margin-bottom: 20px;
+}
+
+.skill-modal-body p {
+    margin-bottom: 15px;
+    line-height: 1.6;
+    color: #555;
+}
+
+.company-name {
+    display: inline-block;
+    background: linear-gradient(45deg, #8257e6, #6b46c1);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+.skill-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.skill-feature {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.skill-feature:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.skill-feature i {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #8257e6;
+}
+
+.skill-feature h4 {
+    margin: 0 0 5px 0;
+    color: #333;
+}
+
+.skill-feature p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+}
+
+.skill-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.skill-modal-btn {
+    background: #8257e6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.skill-modal-btn:hover {
+    background: #6b46c1;
+    transform: translateY(-2px);
+}
+
 .lectures-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
